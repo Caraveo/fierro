@@ -3,6 +3,8 @@ import Accelerate
 
 class AudioAnalyzer: ObservableObject {
     @Published var audioLevel: Float = 0.0
+    @Published var audioFrequency: Float = 0.0 // Dominant frequency (0-1, normalized)
+    @Published var audioIntensity: Float = 0.0 // Overall intensity
     
     private var audioEngine: AVAudioEngine?
     private var inputNode: AVAudioInputNode?
@@ -85,21 +87,60 @@ class AudioAnalyzer: ObservableObject {
         var rms: Float = 0.0
         vDSP_rmsqv(channelDataValueArray, 1, &rms, vDSP_Length(channelDataValueArray.count))
         
-        // Normalize and smooth the audio level - increased sensitivity
-        let normalizedLevel = min(rms * 30.0, 1.0) // Increased sensitivity even more
+        // Calculate frequency characteristics (simple high-frequency detection)
+        var highFreqEnergy: Float = 0.0
+        var lowFreqEnergy: Float = 0.0
+        let frameCount = channelDataValueArray.count
+        
+        // More sophisticated frequency analysis: detect high vs low frequency content
+        // Use FFT-like approach by analyzing different frequency bands
+        let midPoint = frameCount / 3
+        let highPoint = frameCount * 2 / 3
+        
+        for i in 0..<min(frameCount, 512) {
+            let sample = abs(channelDataValueArray[i])
+            if i > highPoint {
+                // High frequency band
+                highFreqEnergy += sample * 1.5 // Boost high frequencies
+            } else if i > midPoint {
+                // Mid frequency band
+                highFreqEnergy += sample * 0.7
+                lowFreqEnergy += sample * 0.3
+            } else {
+                // Low frequency band
+                lowFreqEnergy += sample * 1.2 // Boost low frequencies
+            }
+        }
+        
+        let totalFreqEnergy = highFreqEnergy + lowFreqEnergy
+        let frequencyRatio = totalFreqEnergy > 0.001 ? highFreqEnergy / totalFreqEnergy : 0.4 // Default to slightly mid-range
+        
+        // Normalize and smooth the audio level - increased sensitivity for voice
+        let normalizedLevel = min(rms * 50.0, 1.0) // Much higher sensitivity for voice
+        let normalizedFrequency = min(frequencyRatio * 1.5, 1.0) // Normalize frequency ratio
         
         DispatchQueue.main.async { [weak self] in
-            // Smooth transition
+            // Smooth transition - faster response for voice
             if let currentLevel = self?.audioLevel {
-                self?.audioLevel = currentLevel * 0.5 + normalizedLevel * 0.5 // Even faster response
+                self?.audioLevel = currentLevel * 0.4 + normalizedLevel * 0.6 // Much faster response
             } else {
                 self?.audioLevel = normalizedLevel
             }
             
+            // Faster frequency response for more dynamism
+            if let currentFreq = self?.audioFrequency {
+                self?.audioFrequency = currentFreq * 0.3 + normalizedFrequency * 0.7 // Much faster response
+            } else {
+                self?.audioFrequency = normalizedFrequency
+            }
+            
+            // Audio intensity (combination of level and frequency)
+            self?.audioIntensity = (normalizedLevel + normalizedFrequency) * 0.5
+            
             // Debug: print occasionally
             self?.debugCounter += 1
             if let counter = self?.debugCounter, counter % 100 == 0 {
-                print("Real audio level: \(normalizedLevel), smoothed: \(self?.audioLevel ?? 0)")
+                print("Audio - Level: \(normalizedLevel), Freq: \(normalizedFrequency), Intensity: \(self?.audioIntensity ?? 0)")
             }
         }
     }

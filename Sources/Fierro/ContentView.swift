@@ -17,6 +17,12 @@ struct ContentView: View {
                 .onChange(of: audioAnalyzer.audioLevel) { newLevel in
                     renderer?.updateAudioLevel(newLevel)
                 }
+                .onChange(of: audioAnalyzer.audioFrequency) { newFreq in
+                    renderer?.updateAudioFrequency(newFreq)
+                }
+                .onChange(of: audioAnalyzer.audioIntensity) { newIntensity in
+                    renderer?.updateAudioIntensity(newIntensity)
+                }
             // Invisible draggable overlay with touch reaction
             DraggableArea(onTap: {
                 renderer?.triggerTouchReaction()
@@ -52,6 +58,21 @@ class DraggableNSView: NSView {
         return false // We'll handle dragging manually
     }
     
+    override func hitTest(_ point: NSPoint) -> NSView? {
+        // Calculate distance from center
+        let center = NSPoint(x: bounds.midX, y: bounds.midY)
+        let distance = sqrt(pow(point.x - center.x, 2) + pow(point.y - center.y, 2))
+        let maxRadius = min(bounds.width, bounds.height) * 0.4 // Orb is roughly 40% of window
+        
+        // Only accept clicks within the orb area
+        if distance <= maxRadius {
+            return super.hitTest(point)
+        }
+        
+        // Pass through clicks outside the orb
+        return nil
+    }
+    
     override func mouseDown(with event: NSEvent) {
         mouseDownLocation = event.locationInWindow
         // Play touch sound on click
@@ -81,7 +102,7 @@ struct MetalView: NSViewRepresentable {
     @Binding var renderer: MetalRenderer?
     
     func makeNSView(context: Context) -> MTKView {
-        let mtkView = MTKView()
+        let mtkView = ClickThroughMTKView()
         mtkView.device = MTLCreateSystemDefaultDevice()
         mtkView.clearColor = MTLClearColor(red: 0, green: 0, blue: 0, alpha: 0)
         mtkView.colorPixelFormat = .bgra8Unorm
@@ -104,6 +125,23 @@ struct MetalView: NSViewRepresentable {
             renderer.setup(view: nsView)
         }
         nsView.layer?.masksToBounds = false
+    }
+}
+
+class ClickThroughMTKView: MTKView {
+    override func hitTest(_ point: NSPoint) -> NSView? {
+        // Calculate distance from center
+        let center = NSPoint(x: bounds.midX, y: bounds.midY)
+        let distance = sqrt(pow(point.x - center.x, 2) + pow(point.y - center.y, 2))
+        let maxRadius = min(bounds.width, bounds.height) * 0.4 // Orb is roughly 40% of window
+        
+        // Only accept clicks within the orb area
+        if distance <= maxRadius {
+            return super.hitTest(point)
+        }
+        
+        // Pass through clicks outside the orb
+        return nil
     }
 }
 

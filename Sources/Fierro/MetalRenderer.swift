@@ -10,6 +10,8 @@ class MetalRenderer: NSObject, MTKViewDelegate {
     
     var time: Float = 0
     var audioLevel: Float = 0
+    var audioFrequency: Float = 0.0
+    var audioIntensity: Float = 0.0
     var touchReaction: Float = 0.0 // Visual reaction to touch
     private var debugCounter = 0
     
@@ -22,6 +24,8 @@ class MetalRenderer: NSObject, MTKViewDelegate {
     struct Uniforms {
         var time: Float
         var audioLevel: Float
+        var audioFrequency: Float
+        var audioIntensity: Float
         var touchReaction: Float
         var resolution: simd_float2
     }
@@ -130,11 +134,14 @@ class MetalRenderer: NSObject, MTKViewDelegate {
     
     func updateAudioLevel(_ level: Float) {
         audioLevel = level
-        // Debug: print occasionally
-        debugCounter += 1
-        if debugCounter % 60 == 0 {
-            print("Renderer received audio level: \(level)")
-        }
+    }
+    
+    func updateAudioFrequency(_ frequency: Float) {
+        audioFrequency = frequency
+    }
+    
+    func updateAudioIntensity(_ intensity: Float) {
+        audioIntensity = intensity
     }
     
     func triggerTouchReaction() {
@@ -166,6 +173,8 @@ class MetalRenderer: NSObject, MTKViewDelegate {
         struct Uniforms {
             float time;
             float audioLevel;
+            float audioFrequency;
+            float audioIntensity;
             float touchReaction;
             float2 resolution;
         };
@@ -189,6 +198,8 @@ class MetalRenderer: NSObject, MTKViewDelegate {
             float2 uv = in.uv;
             float time = uniforms.time;
             float audioLevel = uniforms.audioLevel;
+            float audioFrequency = uniforms.audioFrequency;
+            float audioIntensity = uniforms.audioIntensity;
             float touchReaction = uniforms.touchReaction;
             float2 resolution = uniforms.resolution;
             
@@ -197,20 +208,81 @@ class MetalRenderer: NSObject, MTKViewDelegate {
             
             // Scale down the orb to fit better in the window
             coord /= 0.32;
-              
+            
+            float angle = atan2(coord.y, coord.x);
+            float dist = length(coord);
+            
+            // Audio-reactive transformation: Sphere -> Non-symmetrical -> Waveform
+            float deformationIntensity = audioIntensity * 0.6 + touchReaction * 0.3;
+            
+            // Phase 1: Non-symmetrical sphere (moderate audio)
+            float nonSymPhase = time * 0.4 + audioLevel * 0.7;
+            float nonSymDeform = min(deformationIntensity, 0.6); // Limit to 60% for phase 1
+            
+            // Create non-symmetrical deformation
+            float asymX = sin(angle * 2.0 + nonSymPhase) * 0.15 * nonSymDeform;
+            float asymY = cos(angle * 2.5 + nonSymPhase * 1.2) * 0.15 * nonSymDeform;
+            float asymRadial = sin(angle * 3.0 + nonSymPhase * 0.8) * 0.1 * nonSymDeform;
+            
+            // Phase 2: Waveform-based deformation (high audio)
+            float waveformIntensity = max(0.0, deformationIntensity - 0.5) / 0.5; // 0-1 when audio > 50% (lower threshold)
+            waveformIntensity = pow(waveformIntensity, 0.8); // Smooth transition
+            
+            // Create waveform patterns based on audio frequency and level
+            float wavePhase = time * 0.6 + audioLevel * 1.2;
+            float freqWave = sin(angle * audioFrequency * 10.0 + wavePhase) * waveformIntensity;
+            float levelWave = cos(angle * 8.0 + audioLevel * 2.5 + wavePhase) * waveformIntensity;
+            
+            // Combine multiple waveform frequencies for complex patterns
+            float waveform1 = sin(angle * 5.0 + wavePhase) * 0.25 * waveformIntensity;
+            float waveform2 = cos(angle * 9.0 + wavePhase * 1.4) * 0.2 * waveformIntensity;
+            float waveform3 = sin(angle * 13.0 + wavePhase * 0.8) * 0.15 * waveformIntensity;
+            float waveform4 = cos(angle * 17.0 + wavePhase * 1.1) * 0.1 * waveformIntensity;
+            
+            // Radial waveform (like sound waves emanating from center) - more pronounced
+            float radialWave = sin(dist * 10.0 - wavePhase * 2.5) * 0.2 * waveformIntensity;
+            float radialWave2 = cos(dist * 15.0 - wavePhase * 2.0) * 0.15 * waveformIntensity;
+            float radialWave3 = sin(dist * 20.0 - wavePhase * 1.5) * 0.1 * waveformIntensity;
+            
+            // Apply deformations progressively
+            float2 deformedCoord = coord;
+            
+            // Non-symmetrical phase
+            deformedCoord.x += asymX + asymRadial * cos(angle);
+            deformedCoord.y += asymY + asymRadial * sin(angle);
+            
+            // Waveform phase (adds on top of non-symmetrical) - more pronounced
+            float combinedWaveform = waveform1 + waveform2 + waveform3 + waveform4;
+            deformedCoord.x += combinedWaveform * cos(angle) + (radialWave + radialWave2) * cos(angle);
+            deformedCoord.y += combinedWaveform * sin(angle) + (radialWave + radialWave3) * sin(angle);
+            
+            // Add frequency-based waveform modulation - stronger effect
+            float freqMod = audioFrequency * 0.4 * waveformIntensity;
+            deformedCoord.x += sin(angle * 6.0 + audioFrequency * 12.0 + wavePhase) * freqMod;
+            deformedCoord.y += cos(angle * 6.0 + audioFrequency * 12.0 + wavePhase) * freqMod;
+            
+            // Add level-based waveform modulation for more dynamic response
+            float levelMod = audioLevel * 0.3 * waveformIntensity;
+            deformedCoord.x += cos(angle * 4.0 + audioLevel * 8.0 + wavePhase * 0.7) * levelMod;
+            deformedCoord.y += sin(angle * 4.0 + audioLevel * 8.0 + wavePhase * 0.7) * levelMod;
+            
             // Very subtle fluid morphing with gentle frequencies
             float morphPhase = time * 0.25 + audioLevel * 0.5;
             float morph1 = sin(morphPhase) * 0.04;
             float morph2 = cos(morphPhase * 1.1) * 0.03;
             float morph3 = sin(morphPhase * 1.6 + 1.0) * 0.025;
             
-            // Very subtle warp the coordinate space for gentle fluid flow
-            float2 warpedCoord = coord;
-            warpedCoord.x += sin(coord.y * 1.2 + time * 0.5) * 0.02 * (0.2 + audioLevel * 0.15);
-            warpedCoord.y += cos(coord.x * 1.2 + time * 0.45) * 0.02 * (0.2 + audioLevel * 0.15);
+            // Warp the coordinate space for fluid flow
+            float2 warpedCoord = deformedCoord;
+            warpedCoord.x += sin(deformedCoord.y * 1.2 + time * 0.5) * 0.02 * (0.2 + audioLevel * 0.15);
+            warpedCoord.y += cos(deformedCoord.x * 1.2 + time * 0.45) * 0.02 * (0.2 + audioLevel * 0.15);
             
-            float dist = length(warpedCoord);
-            float angle = atan2(warpedCoord.y, warpedCoord.x);
+            // Calculate distance with progressive deformation
+            dist = length(warpedCoord);
+            // Make it less rounded when reactive (waveform phase makes it very non-rounded)
+            float roundedness = 1.0 - (nonSymDeform * 0.25 + waveformIntensity * 0.5);
+            dist = pow(dist, max(0.4, roundedness)); // More extreme deformation
+            angle = atan2(warpedCoord.y, warpedCoord.x);
             
             // Sample particles for density field
             float density = 0.0;
@@ -235,20 +307,22 @@ class MetalRenderer: NSObject, MTKViewDelegate {
             }
             noise *= 0.08;
             
-            // Very subtle dynamic base radius that gently morphs with audio and touch
-            float baseRadius = 0.39 + audioLevel * 0.08 + morph1 * 0.03 + touchReaction * 0.15;
+            // More reactive base radius that responds to voice/audio with deformation
+            float baseRadius = 0.39 + audioLevel * 0.15 + morph1 * 0.03 + touchReaction * 0.15;
+            // Adjust radius based on waveform deformation
+            baseRadius += (waveformIntensity * 0.1 - nonSymDeform * 0.05);
             
-            // Very subtle radial distortion for gentle fluid waves - enhanced by touch
-            float radialWave = sin(dist * 5.0 - time * 0.8) * 0.015 * (0.15 + audioLevel * 0.2 + touchReaction * 0.3);
-            float angularWave = sin(angle * 3.0 + time * 0.6) * 0.012 * (0.15 + audioLevel * 0.2 + touchReaction * 0.25);
+            // Single ring effect - one radial wave, more reactive to audio
+            float ringWave = sin(dist * 1.2 - time * 0.5) * 0.02 * (0.2 + audioLevel * 0.5 + touchReaction * 0.4);
+            float angularWave = sin(angle * 3.0 + time * 0.6) * 0.012 * (0.15 + audioLevel * 0.35 + touchReaction * 0.25);
             
             // Main blob with subtle morphing
-            float blobDist = dist + noise * 0.1 + density * 1.2 + radialWave + angularWave;
+            float blobDist = dist + noise * 0.1 + density * 1.2 + ringWave + angularWave;
             float blob = 1.0 - smoothstep(baseRadius, baseRadius + 0.35, blobDist);
             
-            // Very subtle dynamic spikes/tendrils that gently morph - always visible, audio and touch reactive
+            // More reactive spikes/tendrils that respond to voice - always visible, audio and touch reactive
             float spikes = 0.0;
-            int spikeCount = 6 + int(audioLevel * 2.5) + int(touchReaction * 4.0); // Increase with audio and touch
+            int spikeCount = 6 + int(audioLevel * 4.0) + int(touchReaction * 4.0); // More spikes with audio
             for (int i = 0; i < spikeCount; i++) {
                 float spikeAngle = (float(i) / float(spikeCount)) * 3.14159 * 2.0 + time * 0.3 + morph2;
                 float spikeDist = dist - baseRadius - 0.12;
@@ -258,30 +332,26 @@ class MetalRenderer: NSObject, MTKViewDelegate {
                 float spikeIntensity = sin(spikePhase) * 0.35 + 0.65;
                 spikeIntensity = pow(spikeIntensity, 1.05 + audioLevel * 0.15 + touchReaction * 0.2);
                 
-                // Subtle variable spike length - reacts to audio and touch
-                float spikeLength = 0.14 + audioLevel * 0.12 + touchReaction * 0.18 + sin(time * 0.9 + float(i)) * 0.03;
-                // Make spikes visible even at low audio, but grow with audio and touch
-                float spike = exp(-spikeDist * 4.5) * spikeIntensity * (0.35 + audioLevel * 0.25 + touchReaction * 0.4);
+                // More reactive spike length - responds strongly to voice/audio
+                float spikeLength = 0.14 + audioLevel * 0.20 + touchReaction * 0.18 + sin(time * 0.9 + float(i)) * 0.03;
+                // Make spikes visible even at low audio, but grow more with audio and touch
+                float spike = exp(-spikeDist * 4.5) * spikeIntensity * (0.35 + audioLevel * 0.40 + touchReaction * 0.4);
                 
-                // Subtle secondary tendrils - always visible, audio and touch reactive
+                // More reactive secondary tendrils - respond to voice
                 float tendrilAngle = spikeAngle + 0.2;
                 float tendrilDist = dist - baseRadius - 0.14;
                 float tendril = exp(-tendrilDist * 5.5) * 
                                (sin((angle - tendrilAngle) * 7.0 + time * 1.8) * 0.15 + 0.45) *
-                               (0.18 + audioLevel * 0.15 + touchReaction * 0.25);
+                               (0.18 + audioLevel * 0.25 + touchReaction * 0.25);
                 
                 spikes += spike + tendril;
             }
             spikes = smoothstep(0.18, 0.42, spikes);
             
-            // Combine blob and spikes with subtle morphing blend - audio reactive
-            float shape = max(blob, spikes * (0.48 + audioLevel * 0.12));
+            // Combine blob and spikes with more reactive blend - responds to voice
+            float shape = max(blob, spikes * (0.48 + audioLevel * 0.20));
             
-            // Very subtle surface ripples - audio and touch reactive
-            float ripple = sin(dist * 10.0 - time * 1.2) * 
-                          cos(angle * 5.0 + time * 1.0) * 
-                          (audioLevel * 0.015 + touchReaction * 0.03);
-            shape += ripple;
+            // Remove multiple surface ripples - keep it clean with just the single ring
             shape = clamp(shape, 0.0, 1.0);
             
             // Calculate surface normal with fluid distortion
@@ -301,24 +371,108 @@ class MetalRenderer: NSObject, MTKViewDelegate {
             float3 viewDir = normalize(float3(coord, 1.0));
             float fresnel = pow(1.0 - max(dot(viewDir, normal), 0.0), 2.0);
             
-            // Very subtle dynamic color that gently shifts with morphing - audio and touch reactive
-            float3 baseColor = float3(0.02, 0.02, 0.03);
-            float3 highlightColor = float3(0.9, 0.95, 1.0) * fresnel;
-            float colorShift = sin(time * 0.2) * 0.02;
-            highlightColor += float3(colorShift, colorShift * 0.5, 0.0);
-            float3 color = mix(baseColor, highlightColor, fresnel * 0.62 + audioLevel * 0.25 + touchReaction * 0.2);
+            // Single dominant color that transitions based on audio characteristics with more dynamism
+            float3 baseColor = float3(0.0, 0.0, 0.0); // Darker base for more contrast
             
-            // Very subtle specular with gentle audio and touch reactivity
+            // Add time-based variation to prevent getting stuck
+            float timeVariation = sin(time * 0.5) * 0.15;
+            float dynamicFreq = clamp(audioFrequency + timeVariation, 0.0, 1.0);
+            float dynamicLevel = clamp(audioLevel + timeVariation * 0.5, 0.0, 1.0);
+            
+            // Color mapping with more granular zones and smoother transitions:
+            // High frequency + High volume = RED/PURPLE (intense, sharp sounds)
+            // High frequency + Low volume = PINK/MAGENTA (whispers, high notes)
+            // Medium frequency + High volume = BLUE/CYAN (mid-range, loud)
+            // Medium frequency + Low volume = GREEN/TEAL (calm, mid tones)
+            // Low frequency + High volume = ORANGE/YELLOW (bass, deep sounds)
+            // Low frequency + Low volume = YELLOW/AMBER (warm, soft bass)
+            
+            float3 dominantColor = float3(0.0);
+            float colorIntensity = audioIntensity * 0.9 + touchReaction * 0.2;
+            
+            // More dynamic color selection with smoother transitions
+            float freqWeight = dynamicFreq;
+            float levelWeight = dynamicLevel;
+            
+            // Create color zones with smooth blending between them
+            if (freqWeight > 0.65 && levelWeight > 0.45) {
+                // High freq + High volume = RED/PURPLE
+                float zoneMix = (freqWeight - 0.65) / 0.35;
+                dominantColor = mix(float3(1.0, 0.0, 0.3), float3(0.9, 0.0, 1.0), zoneMix);
+            } else if (freqWeight > 0.65) {
+                // High freq + Low volume = PINK/MAGENTA
+                float zoneMix = (freqWeight - 0.65) / 0.35;
+                dominantColor = mix(float3(1.0, 0.5, 0.9), float3(1.0, 0.2, 1.0), zoneMix);
+            } else if (freqWeight > 0.35 && levelWeight > 0.35) {
+                // Medium freq + High volume = BLUE/CYAN
+                float zoneMix = (freqWeight - 0.35) / 0.3;
+                dominantColor = mix(float3(0.2, 0.6, 1.0), float3(0.0, 1.0, 1.0), zoneMix);
+            } else if (freqWeight > 0.35) {
+                // Medium freq + Low volume = GREEN/TEAL
+                float zoneMix = (freqWeight - 0.35) / 0.3;
+                dominantColor = mix(float3(0.0, 1.0, 0.6), float3(0.0, 0.9, 0.9), zoneMix);
+            } else if (levelWeight > 0.35) {
+                // Low freq + High volume = ORANGE/YELLOW
+                float zoneMix = levelWeight;
+                dominantColor = mix(float3(1.0, 0.6, 0.0), float3(1.0, 0.9, 0.2), zoneMix);
+            } else {
+                // Low freq + Low volume = YELLOW/AMBER (but add variation)
+                float variation = sin(time * 0.8 + audioIntensity * 2.0) * 0.3;
+                dominantColor = mix(float3(1.0, 0.7, 0.1), float3(1.0, 0.5, 0.0), 0.5 + variation);
+            }
+            
+            // Add more dynamic color shifting with time and audio
+            float colorPhase = time * 0.4 + audioIntensity * 0.5 + audioFrequency * 0.3;
+            float colorBlend = sin(colorPhase) * 0.15 + 0.85; // More variation
+            
+            // Add subtle hue rotation to prevent stagnation
+            float hueShift = sin(time * 0.3) * 0.1;
+            dominantColor.r = clamp(dominantColor.r + hueShift, 0.0, 1.0);
+            dominantColor.g = clamp(dominantColor.g + hueShift * 0.5, 0.0, 1.0);
+            dominantColor.b = clamp(dominantColor.b - hueShift * 0.3, 0.0, 1.0);
+            
+            // Apply color based on audio intensity with more dynamism - darker contrast
+            float3 gradientColor = mix(baseColor, dominantColor * colorBlend, colorIntensity);
+            
+            // Increase contrast by making non-highlighted areas darker
+            float contrastBoost = 1.3;
+            gradientColor = pow(gradientColor, float3(1.0 / contrastBoost)); // Darken shadows
+            
+            // Add fresnel highlights with dominant color - brighter for contrast
+            float3 highlightColor = dominantColor * fresnel * (0.7 + audioIntensity * 0.6);
+            float3 color = mix(gradientColor, highlightColor, fresnel * 0.65 + audioIntensity * 0.4 + touchReaction * 0.2);
+            
+            // More reactive specular with dominant color - brighter for contrast
             float3 lightDir = normalize(float3(0.3, 0.5, 1.0));
-            float specular = pow(max(dot(reflect(-lightDir, normal), viewDir), 0.0), 58.0 + audioLevel * 8.0 + touchReaction * 15.0);
-            color += float3(1.0, 1.0, 1.0) * specular * (0.65 + audioLevel * 0.3 + touchReaction * 0.4);
+            float specular = pow(max(dot(reflect(-lightDir, normal), viewDir), 0.0), 58.0 + audioLevel * 12.0 + touchReaction * 15.0);
+            color += dominantColor * specular * (0.8 + audioIntensity * 0.5 + touchReaction * 0.4);
             
-            // Very subtle rim lighting - audio and touch reactive
+            // More reactive rim lighting with dominant color - brighter for contrast
             float rim = pow(1.0 - max(dot(viewDir, normal), 0.0), 3.0);
-            color += float3(0.6, 0.7, 0.8) * rim * (0.25 + audioLevel * 0.15 + touchReaction * 0.2);
+            color += dominantColor * rim * (0.3 + audioIntensity * 0.4 + touchReaction * 0.2);
             
-            // Alpha with smooth edges
-            float alpha = smoothstep(0.0, 0.12, shape) * 0.98;
+            // Increase overall contrast
+            color = pow(color, float3(0.9)); // Slight darkening for more contrast
+            
+            // One pixel border that fades in and out in certain areas
+            float borderFade = sin(time * 0.8 + angle * 2.0) * 0.5 + 0.5; // Fade based on angle and time
+            borderFade *= sin(time * 1.2 + dist * 3.0) * 0.5 + 0.5; // Additional fade based on distance
+            borderFade *= (0.3 + audioIntensity * 0.4 + touchReaction * 0.3); // Audio reactive
+            
+            // Detect edge (one pixel border)
+            float edgeWidth = 0.01; // One pixel width
+            float edgeDist = fwidth(shape); // Screen-space derivative for edge detection
+            float border = smoothstep(edgeWidth * 0.5, edgeWidth * 1.5, edgeDist);
+            
+            // Make border appear in certain areas (waveform areas get more border)
+            float borderIntensity = border * borderFade * (0.5 + waveformIntensity * 0.5);
+            
+            // Border color - pure white
+            float3 borderColor = float3(1.0, 1.0, 1.0);
+            color = mix(color, borderColor, borderIntensity * 0.6);
+            
+            // Less transparent alpha with smooth edges
+            float alpha = smoothstep(0.0, 0.12, shape) * 0.9;
             
             return float4(color, alpha);
         }
@@ -429,6 +583,8 @@ class MetalRenderer: NSObject, MTKViewDelegate {
         let uniforms = Uniforms(
             time: time,
             audioLevel: audioLevel,
+            audioFrequency: audioFrequency,
+            audioIntensity: audioIntensity,
             touchReaction: touchReaction,
             resolution: simd_float2(Float(view.drawableSize.width), Float(view.drawableSize.height))
         )
