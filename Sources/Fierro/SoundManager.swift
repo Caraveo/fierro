@@ -5,6 +5,7 @@ class SoundManager {
     
     private var startPlayer: AVAudioPlayer?
     private var touchPlayer: AVAudioPlayer?
+    private var beepPlayer: AVAudioPlayer?
     
     private init() {
         setupAudioSession()
@@ -29,6 +30,10 @@ class SoundManager {
             loadTouchSound(from: touchURL)
         }
         
+        if let beepURL = bundle.url(forResource: "beep", withExtension: "wav") {
+            loadBeepSound(from: beepURL)
+        }
+        
         // Try to find the bundle directory
         let executablePath = bundle.executablePath ?? ""
         let executableDir = (executablePath as NSString).deletingLastPathComponent
@@ -38,6 +43,7 @@ class SoundManager {
         if FileManager.default.fileExists(atPath: bundlePath) {
             let startPath = bundlePath + "/start.wav"
             let touchPath = bundlePath + "/touch.wav"
+            let beepPath = bundlePath + "/beep.wav"
             
             if FileManager.default.fileExists(atPath: startPath) {
                 loadStartSound(from: URL(fileURLWithPath: startPath))
@@ -45,6 +51,10 @@ class SoundManager {
             
             if FileManager.default.fileExists(atPath: touchPath) {
                 loadTouchSound(from: URL(fileURLWithPath: touchPath))
+            }
+            
+            if FileManager.default.fileExists(atPath: beepPath) {
+                loadBeepSound(from: URL(fileURLWithPath: beepPath))
             }
         }
         
@@ -96,6 +106,15 @@ class SoundManager {
         }
     }
     
+    private func loadBeepSound(from url: URL) {
+        do {
+            beepPlayer = try AVAudioPlayer(contentsOf: url)
+            beepPlayer?.prepareToPlay()
+        } catch {
+            print("Failed to load beep.wav: \(error)")
+        }
+    }
+    
     func playStart() {
         if let player = startPlayer {
             player.currentTime = 0
@@ -113,6 +132,16 @@ class SoundManager {
             print("Playing touch.wav")
         } else {
             print("Error: touchPlayer is nil")
+        }
+    }
+    
+    func playBeep() {
+        if let player = beepPlayer {
+            player.currentTime = 0
+            player.play()
+            print("Playing beep.wav")
+        } else {
+            print("Error: beepPlayer is nil")
         }
     }
 }

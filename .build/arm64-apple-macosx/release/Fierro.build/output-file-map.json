@@ -16,6 +16,12 @@
     "swift-dependencies": "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/ContentView.swiftdeps",
     "diagnostics": "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/ContentView.dia"
   },
+  "/Users/caraveo/fierro/Sources/Fierro/EmojiView.swift": {
+    "object": "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/EmojiView.swift.o",
+    "swiftmodule": "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/EmojiView~partial.swiftmodule",
+    "swift-dependencies": "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/EmojiView.swiftdeps",
+    "diagnostics": "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/EmojiView.dia"
+  },
   "/Users/caraveo/fierro/Sources/Fierro/FierroApp.swift": {
     "object": "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/FierroApp.swift.o",
     "swiftmodule": "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/FierroApp~partial.swiftmodule",
@@ -27,6 +33,12 @@
     "swiftmodule": "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/MetalRenderer~partial.swiftmodule",
     "swift-dependencies": "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/MetalRenderer.swiftdeps",
     "diagnostics": "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/MetalRenderer.dia"
+  },
+  "/Users/caraveo/fierro/Sources/Fierro/PomodoroTimer.swift": {
+    "object": "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/PomodoroTimer.swift.o",
+    "swiftmodule": "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/PomodoroTimer~partial.swiftmodule",
+    "swift-dependencies": "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/PomodoroTimer.swiftdeps",
+    "diagnostics": "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/PomodoroTimer.dia"
   },
   "/Users/caraveo/fierro/Sources/Fierro/SoundManager.swift": {
     "object": "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/SoundManager.swift.o",

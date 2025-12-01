@@ -19,7 +19,8 @@ let package = Package(
             exclude: ["FerrofluidShader.metal"],
             resources: [
                 .process("start.wav"),
-                .process("touch.wav")
+                .process("touch.wav"),
+                .process("beep.wav")
             ]
         )
     ]

@@ -13,6 +13,8 @@ class MetalRenderer: NSObject, MTKViewDelegate {
     var audioFrequency: Float = 0.0
     var audioIntensity: Float = 0.0
     var touchReaction: Float = 0.0 // Visual reaction to touch
+    var timerProgress: Float = 0.0 // 0.0 to 1.0 for pomodoro timer
+    var timerCompletionFlash: Float = 0.0 // 0.0 to 1.0, red flash when timer completes
     private var debugCounter = 0
     
     var quadVertexBuffer: MTLBuffer!
@@ -27,6 +29,8 @@ class MetalRenderer: NSObject, MTKViewDelegate {
         var audioFrequency: Float
         var audioIntensity: Float
         var touchReaction: Float
+        var timerProgress: Float
+        var timerCompletionFlash: Float
         var resolution: simd_float2
     }
     
@@ -144,6 +148,14 @@ class MetalRenderer: NSObject, MTKViewDelegate {
         audioIntensity = intensity
     }
     
+    func updateTimerProgress(_ progress: Float) {
+        timerProgress = progress
+    }
+    
+    func updateTimerCompletionFlash(_ flash: Float) {
+        timerCompletionFlash = flash
+    }
+    
     func triggerTouchReaction() {
         // Trigger a visual pulse/reaction
         touchReaction = 1.0
@@ -176,6 +188,8 @@ class MetalRenderer: NSObject, MTKViewDelegate {
             float audioFrequency;
             float audioIntensity;
             float touchReaction;
+            float timerProgress;
+            float timerCompletionFlash;
             float2 resolution;
         };
         
@@ -201,6 +215,8 @@ class MetalRenderer: NSObject, MTKViewDelegate {
             float audioFrequency = uniforms.audioFrequency;
             float audioIntensity = uniforms.audioIntensity;
             float touchReaction = uniforms.touchReaction;
+            float timerProgress = uniforms.timerProgress;
+            float timerCompletionFlash = uniforms.timerCompletionFlash;
             float2 resolution = uniforms.resolution;
             
             float2 coord = (uv - 0.5) * 2.0;
@@ -525,6 +541,18 @@ class MetalRenderer: NSObject, MTKViewDelegate {
             // Increase overall contrast
             color = pow(color, float3(0.9)); // Slight darkening for more contrast
             
+            // Pomodoro completion flash - turn orb red when timer completes
+            if (timerCompletionFlash > 0.0) {
+                // Override color to bright red with pulsing effect
+                float3 redColor = float3(1.0, 0.1, 0.1); // Bright red
+                float redPulse = sin(time * 8.0) * 0.2 + 0.8; // Pulsing effect
+                redColor *= redPulse;
+                
+                // Blend with existing color based on flash intensity
+                // Stronger flash = more red, fades out smoothly
+                color = mix(color, redColor, timerCompletionFlash * 0.9);
+            }
+            
             // One pixel border that fades in and out in certain areas - stronger pulsing
             float borderPulse = sin(time * 2.0 + angle * 3.0) * 0.5 + 0.5; // Faster fade based on angle and time
             borderPulse *= sin(time * 2.5 + dist * 4.0) * 0.5 + 0.5; // Faster additional fade based on distance
@@ -544,6 +572,46 @@ class MetalRenderer: NSObject, MTKViewDelegate {
             
             // Less transparent alpha with smooth edges
             float alpha = smoothstep(0.0, 0.12, shape) * 0.9;
+            
+            // Pomodoro timer ring - drains like a reverse clock
+            if (timerProgress > 0.0 && timerProgress < 1.0) {
+                // Ring position: outside the orb
+                float ringRadius = 0.55; // Position ring outside orb
+                float ringThickness = 0.03; // Thickness of the ring
+                float ringDist = abs(dist - ringRadius);
+                
+                // Only draw if within ring thickness
+                if (ringDist < ringThickness) {
+                    // Calculate angle for progress (0 = top, goes clockwise)
+                    // timerProgress goes from 0.0 (just started) to 1.0 (completed/empty)
+                    // We want to show remaining time, so reverse it
+                    float remainingProgress = 1.0 - timerProgress; // 1.0 (full) to 0.0 (empty)
+                    float progressAngle = remainingProgress * 2.0 * 3.14159; // 0 to 2π
+                    
+                    // Convert angle to 0-2π range, starting from top (-π/2)
+                    float currentAngle = angle + 3.14159 / 2.0; // Shift to start from top
+                    if (currentAngle < 0.0) currentAngle += 2.0 * 3.14159;
+                    if (currentAngle > 2.0 * 3.14159) currentAngle -= 2.0 * 3.14159;
+                    
+                    // Determine if this pixel should be visible based on remaining progress
+                    // Show ring from top clockwise until progressAngle (what's remaining)
+                    bool shouldShow = currentAngle <= progressAngle;
+                    
+                    if (shouldShow) {
+                        // Ring color - subtle white/glow
+                        float ringAlpha = smoothstep(ringThickness, 0.0, ringDist) * 0.8;
+                        float3 ringColor = float3(1.0, 1.0, 1.0);
+                        
+                        // Add subtle pulsing when timer is running
+                        float pulse = sin(time * 2.0) * 0.1 + 0.9;
+                        ringColor *= pulse;
+                        
+                        // Blend ring with existing color
+                        color = mix(color, ringColor, ringAlpha * 0.6);
+                        alpha = max(alpha, ringAlpha * 0.7);
+                    }
+                }
+            }
             
             return float4(color, alpha);
         }
@@ -657,6 +725,8 @@ class MetalRenderer: NSObject, MTKViewDelegate {
             audioFrequency: audioFrequency,
             audioIntensity: audioIntensity,
             touchReaction: touchReaction,
+            timerProgress: timerProgress,
+            timerCompletionFlash: timerCompletionFlash,
             resolution: simd_float2(Float(view.drawableSize.width), Float(view.drawableSize.height))
         )
         
