@@ -42,6 +42,8 @@ The executable will be located at `.build/release/Fierro` after building.
 
 ## Usage
 
+### Normal Mode
+
 1. Launch the app (you'll hear a startup sound)
 2. Grant microphone permission when prompted (or in System Settings > Privacy & Security > Microphone)
 3. The ferrofluid orb will appear at the bottom right of your screen
@@ -52,6 +54,31 @@ The executable will be located at `.build/release/Fierro` after building.
 5. **Tap the orb** to trigger a touch reaction and see an emoji
 6. **Drag the window** to move it anywhere on your screen
 7. Clicks outside the orb pass through to your desktop
+
+### Background Mode
+
+Run FIERRO in the background without showing a dock icon:
+
+```bash
+.build/release/Fierro --background
+```
+
+In background mode:
+- App runs without a dock icon
+- Window still appears and functions normally
+- App doesn't steal focus when launched
+- Perfect for running FIERRO as a background companion
+
+### Pomodoro Timer
+
+- **Click and hold** the orb to set timer duration:
+  - Quick click = 10 minutes
+  - 1 second hold = 20 minutes
+  - 2 seconds = 25 minutes
+  - 3 seconds = 30 minutes
+  - ... up to 9+ seconds = 60 minutes (1 hour max)
+- Watch the **ring drain clockwise** as time passes
+- **Beep sound** plays when timer starts and completes
 
 ## Technical Details
 

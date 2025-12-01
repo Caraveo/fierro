@@ -6,6 +6,19 @@ struct FierroApp: App {
     @StateObject private var audioAnalyzer = AudioAnalyzer()
     
     init() {
+        // Check for --background command-line argument
+        let arguments = CommandLine.arguments
+        let runInBackground = arguments.contains("--background")
+        
+        if runInBackground {
+            // Set activation policy to accessory (hides from dock, runs in background)
+            NSApp.setActivationPolicy(.accessory)
+            print("🔇 Running in background mode (no dock icon)")
+        } else {
+            // Normal mode - show in dock
+            NSApp.setActivationPolicy(.regular)
+        }
+        
         // Play startup sound
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             SoundManager.shared.playStart()
@@ -86,7 +99,12 @@ struct WindowAccessor: NSViewRepresentable {
         
         window.orderFrontRegardless()
         window.makeKeyAndOrderFront(nil)
-        NSApp.activate(ignoringOtherApps: true)
+        
+        // Only activate app if not running in background mode
+        // In background mode, window appears but app doesn't steal focus
+        if !CommandLine.arguments.contains("--background") {
+            NSApp.activate(ignoringOtherApps: true)
+        }
     }
 }
 
