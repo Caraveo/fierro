@@ -1,0 +1,33 @@
+{
+  "": {
+    "swift-dependencies": "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro.build/master.swiftdeps"
+  },
+  "/Users/caraveo/fierro/Sources/Fierro/AudioAnalyzer.swift": {
+    "dependencies": "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro.build/AudioAnalyzer.d",
+    "object": "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro.build/AudioAnalyzer.swift.o",
+    "swiftmodule": "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro.build/AudioAnalyzer~partial.swiftmodule",
+    "swift-dependencies": "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro.build/AudioAnalyzer.swiftdeps",
+    "diagnostics": "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro.build/AudioAnalyzer.dia"
+  },
+  "/Users/caraveo/fierro/Sources/Fierro/ContentView.swift": {
+    "dependencies": "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro.build/ContentView.d",
+    "object": "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro.build/ContentView.swift.o",
+    "swiftmodule": "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro.build/ContentView~partial.swiftmodule",
+    "swift-dependencies": "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro.build/ContentView.swiftdeps",
+    "diagnostics": "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro.build/ContentView.dia"
+  },
+  "/Users/caraveo/fierro/Sources/Fierro/FierroApp.swift": {
+    "dependencies": "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro.build/FierroApp.d",
+    "object": "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro.build/FierroApp.swift.o",
+    "swiftmodule": "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro.build/FierroApp~partial.swiftmodule",
+    "swift-dependencies": "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro.build/FierroApp.swiftdeps",
+    "diagnostics": "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro.build/FierroApp.dia"
+  },
+  "/Users/caraveo/fierro/Sources/Fierro/MetalRenderer.swift": {
+    "dependencies": "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro.build/MetalRenderer.d",
+    "object": "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro.build/MetalRenderer.swift.o",
+    "swiftmodule": "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro.build/MetalRenderer~partial.swiftmodule",
+    "swift-dependencies": "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro.build/MetalRenderer.swiftdeps",
+    "diagnostics": "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro.build/MetalRenderer.dia"
+  }
+}

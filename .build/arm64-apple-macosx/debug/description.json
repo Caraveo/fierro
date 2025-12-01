@@ -1,0 +1,320 @@
+{
+  "builtTestProducts" : [
+
+  ],
+  "copyCommands" : {
+
+  },
+  "explicitTargetDependencyImportCheckingMode" : {
+    "none" : {
+
+    }
+  },
+  "generatedSourceTargetSet" : [
+
+  ],
+  "pluginDescriptions" : [
+
+  ],
+  "swiftCommands" : {
+    "C.Fierro-arm64-apple-macosx26.0-debug.module" : {
+      "executable" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "fileList" : "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro.build/sources",
+      "importPath" : "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/caraveo/fierro/Sources/Fierro/AudioAnalyzer.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/caraveo/fierro/Sources/Fierro/ContentView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/caraveo/fierro/Sources/Fierro/FierroApp.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/caraveo/fierro/Sources/Fierro/MetalRenderer.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro.build/sources"
+        }
+      ],
+      "isLibrary" : false,
+      "moduleName" : "Fierro",
+      "moduleOutputPath" : "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Modules/Fierro.swiftmodule",
+      "objects" : [
+        "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro.build/AudioAnalyzer.swift.o",
+        "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro.build/ContentView.swift.o",
+        "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro.build/FierroApp.swift.o",
+        "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro.build/MetalRenderer.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx13.0",
+        "-incremental",
+        "-enable-batch-mode",
+        "-serialize-diagnostics",
+        "-index-store-path",
+        "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/index/store",
+        "-Onone",
+        "-enable-testing",
+        "-j14",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-Xfrontend",
+        "-entry-point-function-name",
+        "-Xfrontend",
+        "Fierro_main",
+        "-swift-version",
+        "5",
+        "-plugin-path",
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "fierro"
+      ],
+      "outputFileMapPath" : "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro.build/AudioAnalyzer.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro.build/ContentView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro.build/FierroApp.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro.build/MetalRenderer.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Modules/Fierro.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/caraveo/fierro/Sources/Fierro/AudioAnalyzer.swift",
+        "/Users/caraveo/fierro/Sources/Fierro/ContentView.swift",
+        "/Users/caraveo/fierro/Sources/Fierro/FierroApp.swift",
+        "/Users/caraveo/fierro/Sources/Fierro/MetalRenderer.swift"
+      ],
+      "tempsPath" : "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro.build",
+      "wholeModuleOptimization" : false
+    }
+  },
+  "swiftFrontendCommands" : {
+
+  },
+  "swiftTargetScanArgs" : {
+    "Fierro" : [
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-module-name",
+      "Fierro",
+      "-package-name",
+      "fierro",
+      "-c",
+      "/Users/caraveo/fierro/Sources/Fierro/AudioAnalyzer.swift",
+      "/Users/caraveo/fierro/Sources/Fierro/ContentView.swift",
+      "/Users/caraveo/fierro/Sources/Fierro/FierroApp.swift",
+      "/Users/caraveo/fierro/Sources/Fierro/MetalRenderer.swift",
+      "-I",
+      "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Modules",
+      "-target",
+      "arm64-apple-macosx13.0",
+      "-incremental",
+      "-enable-batch-mode",
+      "-serialize-diagnostics",
+      "-index-store-path",
+      "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/index/store",
+      "-Onone",
+      "-enable-testing",
+      "-j14",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-module-cache-path",
+      "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/ModuleCache",
+      "-parseable-output",
+      "-Xfrontend",
+      "-entry-point-function-name",
+      "-Xfrontend",
+      "Fierro_main",
+      "-swift-version",
+      "5",
+      "-plugin-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-I",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.1.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "fierro",
+      "-driver-use-frontend-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+    ]
+  },
+  "targetDependencyMap" : {
+    "Fierro" : [
+
+    ]
+  },
+  "testDiscoveryCommands" : {
+
+  },
+  "testEntryPointCommands" : {
+
+  },
+  "traitConfiguration" : {
+    "default" : {
+
+    }
+  },
+  "writeCommands" : {
+    "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro-entitlement.plist" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<entitlement-plist>"
+        },
+        {
+          "kind" : "virtual",
+          "name" : "<com.apple.security.get-task-allow>"
+        }
+      ],
+      "outputFilePath" : "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro-entitlement.plist"
+    },
+    "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/caraveo/fierro/Sources/Fierro/AudioAnalyzer.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/caraveo/fierro/Sources/Fierro/ContentView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/caraveo/fierro/Sources/Fierro/FierroApp.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/caraveo/fierro/Sources/Fierro/MetalRenderer.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro.build/sources"
+    },
+    "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro.product/Objects.LinkFileList" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<link-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro.build/AudioAnalyzer.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro.build/ContentView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro.build/FierroApp.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro.build/MetalRenderer.swift.o"
+        }
+      ],
+      "outputFilePath" : "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/Fierro.product/Objects.LinkFileList"
+    },
+    "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt" : {
+      "alwaysOutOfDate" : true,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<swift-get-version>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+        }
+      ],
+      "outputFilePath" : "/Users/caraveo/fierro/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+    }
+  }
+}
