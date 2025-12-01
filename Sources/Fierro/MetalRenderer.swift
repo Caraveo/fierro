@@ -10,6 +10,7 @@ class MetalRenderer: NSObject, MTKViewDelegate {
     
     var time: Float = 0
     var audioLevel: Float = 0
+    private var debugCounter = 0
     
     var quadVertexBuffer: MTLBuffer!
     var uniformBuffer: MTLBuffer!
@@ -127,6 +128,11 @@ class MetalRenderer: NSObject, MTKViewDelegate {
     
     func updateAudioLevel(_ level: Float) {
         audioLevel = level
+        // Debug: print occasionally
+        debugCounter += 1
+        if debugCounter % 60 == 0 {
+            print("Renderer received audio level: \(level)")
+        }
     }
     
     private func loadShaderSource() -> String? {
@@ -161,9 +167,9 @@ class MetalRenderer: NSObject, MTKViewDelegate {
             uint vid [[vertex_id]]
         ) {
             VertexOut out;
-            float4 vertex = vertices[vid];
-            out.position = float4(vertex.xy, 0.0, 1.0);
-            out.uv = vertex.zw;
+            float4 vert = vertices[vid];
+            out.position = float4(vert.xy, 0.0, 1.0);
+            out.uv = vert.zw;
             return out;
         }
         
@@ -180,61 +186,130 @@ class MetalRenderer: NSObject, MTKViewDelegate {
             float2 coord = (uv - 0.5) * 2.0;
             coord.x *= resolution.x / resolution.y;
             
-            float dist = length(coord);
+            // Scale down the orb to fit better in the window
+            coord /= 0.32;
+              
+            // Subtle fluid morphing with gentle frequencies
+            float morphPhase = time * 0.4 + audioLevel * 0.8;
+            float morph1 = sin(morphPhase) * 0.08;
+            float morph2 = cos(morphPhase * 1.2) * 0.06;
+            float morph3 = sin(morphPhase * 1.8 + 1.0) * 0.05;
             
+            // Subtle warp the coordinate space for gentle fluid flow
+            float2 warpedCoord = coord;
+            warpedCoord.x += sin(coord.y * 1.5 + time * 0.8) * 0.04 * (0.3 + audioLevel * 0.2);
+            warpedCoord.y += cos(coord.x * 1.5 + time * 0.7) * 0.04 * (0.3 + audioLevel * 0.2);
+            
+            float dist = length(warpedCoord);
+            float angle = atan2(warpedCoord.y, warpedCoord.x);
+            
+            // Sample particles for density field
             float density = 0.0;
             int sampleCount = min(200, 1000);
             for (int i = 0; i < sampleCount; i += 5) {
                 float2 particlePos = particles[i];
-                float2 diff = coord - particlePos;
+                float2 diff = warpedCoord - particlePos;
                 float particleDist = length(diff);
-                density += exp(-particleDist * 12.0) * 0.005;
+                density += exp(-particleDist * 10.0) * 0.008;
             }
             
+            // Subtle multi-octave noise for gentle organic fluid surface
             float noise = 0.0;
-            float2 p = coord * 3.0;
+            float2 p = warpedCoord * 2.0;
+            float noiseScale = 1.0;
             for (int i = 0; i < 4; i++) {
-                noise += sin(p.x + time * 0.5) * cos(p.y + time * 0.3) * 0.5;
-                p *= 2.0;
-                noise *= 0.5;
+                float n = sin(p.x * noiseScale + time * (0.15 + i * 0.1)) * 
+                          cos(p.y * noiseScale + time * (0.2 + i * 0.08));
+                noise += n * (1.0 / noiseScale);
+                p *= 1.6;
+                noiseScale *= 1.6;
             }
+            noise *= 0.12;
             
-            float baseRadius = 0.4 + audioLevel * 0.15;
-            float blob = 1.0 - smoothstep(baseRadius, baseRadius + 0.3, dist + noise * 0.15 + density * 2.0);
+            // Subtle dynamic base radius that gently morphs
+            float baseRadius = 0.38 + audioLevel * 0.12 + morph1 * 0.05;
             
+            // Subtle radial distortion for gentle fluid waves
+            float radialWave = sin(dist * 6.0 - time * 1.2) * 0.03 * (0.2 + audioLevel * 0.3);
+            float angularWave = sin(angle * 4.0 + time * 0.9) * 0.025 * (0.2 + audioLevel * 0.3);
+            
+            // Main blob with subtle morphing
+            float blobDist = dist + noise * 0.1 + density * 1.2 + radialWave + angularWave;
+            float blob = 1.0 - smoothstep(baseRadius, baseRadius + 0.35, blobDist);
+            
+            // Subtle dynamic spikes/tendrils that gently morph - always visible
             float spikes = 0.0;
-            float angle = atan2(coord.y, coord.x);
-            for (int i = 0; i < 12; i++) {
-                float spikeAngle = (float(i) / 12.0) * 3.14159 * 2.0 + time * 0.5;
-                float spikeDist = dist - baseRadius - 0.1;
-                float spikeIntensity = sin((angle - spikeAngle) * 6.0 + time * 3.0) * 0.5 + 0.5;
-                float spike = exp(-spikeDist * 8.0) * spikeIntensity * (0.3 + audioLevel * 0.4);
-                spikes += spike;
+            int spikeCount = 6 + int(audioLevel * 3.0); // Gentle increase with audio
+            for (int i = 0; i < spikeCount; i++) {
+                float spikeAngle = (float(i) / float(spikeCount)) * 3.14159 * 2.0 + time * 0.4 + morph2;
+                float spikeDist = dist - baseRadius - 0.12;
+                
+                // Gentle morphing spike intensity - always visible base
+                float spikePhase = (angle - spikeAngle) * 6.0 + time * 2.0 + morph3;
+                float spikeIntensity = sin(spikePhase) * 0.4 + 0.6;
+                spikeIntensity = pow(spikeIntensity, 1.1 + audioLevel * 0.2);
+                
+                // Subtle variable spike length - base visibility even at low audio
+                float spikeLength = 0.15 + audioLevel * 0.15 + sin(time * 1.2 + float(i)) * 0.05;
+                // Make spikes visible even at low audio - base intensity of 0.4
+                float spike = exp(-spikeDist * 5.0) * spikeIntensity * (0.4 + audioLevel * 0.3);
+                
+                // Subtle secondary tendrils - always visible
+                float tendrilAngle = spikeAngle + 0.25;
+                float tendrilDist = dist - baseRadius - 0.15;
+                float tendril = exp(-tendrilDist * 6.0) * 
+                               (sin((angle - tendrilAngle) * 8.0 + time * 2.5) * 0.2 + 0.4) *
+                               (0.2 + audioLevel * 0.2);
+                
+                spikes += spike + tendril;
             }
-            spikes = smoothstep(0.2, 0.6, spikes);
+            spikes = smoothstep(0.15, 0.45, spikes);
             
-            float shape = max(blob, spikes * 0.7);
+            // Combine blob and spikes with subtle morphing blend
+            float shape = max(blob, spikes * (0.5 + audioLevel * 0.15));
             
-            float eps = 0.01;
-            float ddx = length(coord + float2(eps, 0.0)) - length(coord - float2(eps, 0.0));
-            float ddy = length(coord + float2(0.0, eps)) - length(coord - float2(0.0, eps));
-            float3 normal = normalize(float3(-ddx, -ddy, 1.0));
+            // Subtle surface ripples
+            float ripple = sin(dist * 12.0 - time * 1.8) * 
+                          cos(angle * 6.0 + time * 1.4) * 
+                          audioLevel * 0.02;
+            shape += ripple;
+            shape = clamp(shape, 0.0, 1.0);
+            
+            // Calculate surface normal with fluid distortion
+            float eps = 0.015;
+            float ddx = length(warpedCoord + float2(eps, 0.0)) - length(warpedCoord - float2(eps, 0.0));
+            float ddy = length(warpedCoord + float2(0.0, eps)) - length(warpedCoord - float2(0.0, eps));
+            float3 normal = normalize(float3(-ddx * 2.0, -ddy * 2.0, 1.0));
+            
+            // Subtle normal perturbation for gentle fluid surface
+            float3 normalNoise = float3(
+                sin(coord.x * 4.0 + time * 0.8) * 0.03,
+                cos(coord.y * 4.0 + time * 0.8) * 0.03,
+                0.0
+            ) * (0.3 + audioLevel * 0.2);
+            normal = normalize(normal + normalNoise);
             
             float3 viewDir = normalize(float3(coord, 1.0));
             float fresnel = pow(1.0 - max(dot(viewDir, normal), 0.0), 2.0);
             
+            // Subtle dynamic color that gently shifts with morphing
             float3 baseColor = float3(0.02, 0.02, 0.03);
             float3 highlightColor = float3(0.9, 0.95, 1.0) * fresnel;
-            float3 color = mix(baseColor, highlightColor, fresnel * 0.6 + audioLevel * 0.4);
+            float colorShift = sin(time * 0.3) * 0.03;
+            highlightColor += float3(colorShift, colorShift * 0.5, 0.0);
+            float3 color = mix(baseColor, highlightColor, fresnel * 0.65 + audioLevel * 0.3);
             
+            // Subtle specular with gentle audio reactivity
             float3 lightDir = normalize(float3(0.3, 0.5, 1.0));
-            float specular = pow(max(dot(reflect(-lightDir, normal), viewDir), 0.0), 64.0);
-            color += float3(1.0, 1.0, 1.0) * specular * (0.8 + audioLevel * 0.5);
+            float specular = pow(max(dot(reflect(-lightDir, normal), viewDir), 0.0), 55.0 + audioLevel * 10.0);
+            color += float3(1.0, 1.0, 1.0) * specular * (0.7 + audioLevel * 0.4);
             
-            float rim = pow(1.0 - max(dot(viewDir, normal), 0.0), 3.0);
-            color += float3(0.5, 0.6, 0.7) * rim * 0.3;
+            // Subtle rim lighting
+            float rim = pow(1.0 - max(dot(viewDir, normal), 0.0), 2.8);
+            color += float3(0.6, 0.7, 0.8) * rim * (0.3 + audioLevel * 0.2);
             
-            float alpha = smoothstep(0.0, 0.1, shape) * 0.98;
+            // Alpha with smooth edges
+            float alpha = smoothstep(0.0, 0.12, shape) * 0.98;
             
             return float4(color, alpha);
         }
@@ -251,23 +326,73 @@ class MetalRenderer: NSObject, MTKViewDelegate {
             float2 center = float2(0.0, 0.0);
             float2 toCenter = center - pos;
             float dist = length(toCenter);
-            
-            float attraction = 0.1 * (1.0 + uniforms.audioLevel * 2.0);
-            float2 force = normalize(toCenter) * attraction * (1.0 - dist);
-            
             float angle = atan2(pos.y, pos.x);
-            float noise = sin(angle * 5.0 + uniforms.time * 2.0) * 
-                          cos(dist * 8.0 + uniforms.time * 1.5) * 
-                          uniforms.audioLevel * 0.2;
-            force += float2(cos(angle + noise), sin(angle + noise)) * 0.05;
             
-            float repulsion = 0.01;
-            force -= normalize(pos) * repulsion * dist;
+            // Subtle dynamic attraction that gently morphs with audio
+            float attractionStrength = 0.1 * (1.0 + uniforms.audioLevel * 1.2);
+            float2 force = normalize(toCenter) * attractionStrength * (1.0 - dist * 0.85);
             
-            pos += force * 0.01;
+            // Gentle fluid flow patterns
+            float flowPhase = uniforms.time * 0.7 + float(id) * 0.008;
+            float flow1 = sin(angle * 2.5 + flowPhase) * 0.03;
+            float flow2 = cos(angle * 4.0 + flowPhase * 1.1) * 0.025;
+            float flow3 = sin(dist * 5.0 - flowPhase * 0.6) * 0.02;
             
-            if (length(pos) > 0.9) {
-                pos = normalize(pos) * 0.9;
+            float2 flowForce = float2(
+                cos(angle + flow1 + flow2) * (0.03 + uniforms.audioLevel * 0.04),
+                sin(angle + flow1 + flow2) * (0.03 + uniforms.audioLevel * 0.04)
+            );
+            force += flowForce;
+            
+            // Subtle vorticity for gentle swirling motion
+            float vorticity = sin(angle * 3.0 + uniforms.time * 0.9) * 
+                             cos(dist * 5.5 + uniforms.time * 0.7) * 
+                             uniforms.audioLevel * 0.06;
+            float2 vorticityForce = float2(-sin(angle + vorticity), cos(angle + vorticity)) * 0.02;
+            force += vorticityForce;
+            
+            // Gentle radial waves that push particles
+            float radialWave = sin(dist * 8.0 - uniforms.time * 1.5) * 
+                              uniforms.audioLevel * 0.04;
+            force += normalize(pos) * radialWave;
+            
+            // Subtle angular waves
+            float angularWave = cos(angle * 6.0 + uniforms.time * 1.2) * 
+                               uniforms.audioLevel * 0.03;
+            force += float2(-sin(angle + angularWave), cos(angle + angularWave)) * 0.015;
+            
+            // Repulsion from center (prevents collapse)
+            float repulsion = 0.015 * dist;
+            force -= normalize(pos) * repulsion;
+            
+            // Inter-particle forces (simplified)
+            float neighborForce = 0.0;
+            for (int i = 0; i < 5; i++) {
+                uint neighborId = (id + uint(i * 200)) % 1000;
+                if (neighborId != id) {
+                    float2 neighborPos = particles[neighborId];
+                    float2 diff = pos - neighborPos;
+                    float neighborDist = length(diff);
+                    if (neighborDist > 0.01 && neighborDist < 0.3) {
+                        neighborForce += 0.002 / (neighborDist * neighborDist);
+                        force += normalize(diff) * neighborForce;
+                    }
+                }
+            }
+            
+            // Apply forces with gentle damping
+            float2 velocity = force * 0.012;
+            pos += velocity;
+            
+            // Boundary constraint with elastic response
+            if (length(pos) > 0.85) {
+                float overshoot = length(pos) - 0.85;
+                pos = normalize(pos) * (0.85 - overshoot * 0.3);
+            }
+            
+            // Keep particles from getting too close to center
+            if (dist < 0.1) {
+                pos = normalize(pos) * 0.1;
             }
             
             particles[id] = pos;

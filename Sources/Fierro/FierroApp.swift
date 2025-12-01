@@ -10,32 +10,60 @@ struct FierroApp: App {
             ContentView()
                 .environmentObject(audioAnalyzer)
                 .background(TransparentBackground())
-                .frame(width: 300, height: 300)
-                .onAppear {
-                    setupWindow()
-                }
+                .frame(width: 567, height: 567)
+                .background(WindowAccessor())
         }
         .windowResizability(.contentSize)
-        .defaultSize(width: 300, height: 300)
+        .defaultSize(width: 567, height: 567)
     }
-    
-    private func setupWindow() {
-        if let window = NSApplication.shared.windows.first {
-            window.backgroundColor = .clear
-            window.isOpaque = false
-            window.hasShadow = false
-            window.level = .floating
-            window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-            
-            // Position at bottom right
-            if let screen = NSScreen.main {
-                let screenRect = screen.visibleFrame
-                let windowRect = window.frame
-                let x = screenRect.maxX - windowRect.width - 20
-                let y = screenRect.minY + 20
-                window.setFrameOrigin(NSPoint(x: x, y: y))
+}
+
+struct WindowAccessor: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView()
+        DispatchQueue.main.async {
+            if let window = view.window {
+                setupWindow(window)
+            } else {
+                // Try again after a short delay
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    if let window = view.window {
+                        setupWindow(window)
+                    }
+                }
             }
         }
+        return view
+    }
+    
+    func updateNSView(_ nsView: NSView, context: Context) {}
+    
+    private func setupWindow(_ window: NSWindow) {
+        window.backgroundColor = .clear
+        window.isOpaque = false
+        window.hasShadow = true
+        window.level = .floating
+        window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        window.ignoresMouseEvents = false
+        window.styleMask = [.borderless, .fullSizeContentView]
+        window.titlebarAppearsTransparent = true
+        window.titleVisibility = .hidden
+        window.isMovableByWindowBackground = true // Make entire window draggable
+        window.contentView?.wantsLayer = true
+        window.contentView?.layer?.masksToBounds = false // Don't clip content
+        
+        // Position at bottom right
+        if let screen = NSScreen.main {
+            let screenRect = screen.visibleFrame
+            let windowSize = NSSize(width: 567, height: 567)
+            let x = screenRect.maxX - windowSize.width - 20
+            let y = screenRect.minY + 20
+            window.setFrame(NSRect(origin: NSPoint(x: x, y: y), size: windowSize), display: true)
+        }
+        
+        window.orderFrontRegardless()
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
     }
 }
 

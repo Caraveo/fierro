@@ -9,6 +9,7 @@ struct ContentView: View {
     var body: some View {
         ZStack {
             MetalView(renderer: $renderer)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .onAppear {
                     renderer = MetalRenderer()
                     audioAnalyzer.start()
@@ -16,8 +17,30 @@ struct ContentView: View {
                 .onChange(of: audioAnalyzer.audioLevel) { newLevel in
                     renderer?.updateAudioLevel(newLevel)
                 }
+            // Invisible draggable overlay
+            DraggableArea()
         }
         .background(Color.clear)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+struct DraggableArea: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView {
+        let view = DraggableNSView()
+        return view
+    }
+    
+    func updateNSView(_ nsView: NSView, context: Context) {}
+}
+
+class DraggableNSView: NSView {
+    override var mouseDownCanMoveWindow: Bool {
+        return true
+    }
+    
+    override func mouseDown(with event: NSEvent) {
+        window?.performDrag(with: event)
     }
 }
 
@@ -33,6 +56,8 @@ struct MetalView: NSViewRepresentable {
         mtkView.enableSetNeedsDisplay = false
         mtkView.framebufferOnly = false
         mtkView.layer?.isOpaque = false
+        mtkView.autoresizingMask = [.width, .height] // Fill the parent view
+        mtkView.layer?.masksToBounds = false // Don't clip rendering
         
         if let renderer = renderer {
             renderer.setup(view: mtkView)
@@ -45,6 +70,7 @@ struct MetalView: NSViewRepresentable {
         if let renderer = renderer {
             renderer.setup(view: nsView)
         }
+        nsView.layer?.masksToBounds = false
     }
 }
 
