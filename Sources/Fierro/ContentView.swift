@@ -12,7 +12,8 @@ struct ContentView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .onAppear {
                     renderer = MetalRenderer()
-                    audioAnalyzer.start()
+                    // Audio analyzer is started in FierroApp body.onAppear
+                    // This ensures it starts once when the first window appears
                 }
                 .onChange(of: audioAnalyzer.audioLevel) { newLevel in
                     renderer?.updateAudioLevel(newLevel)

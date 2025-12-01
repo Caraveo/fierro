@@ -19,6 +19,11 @@ struct FierroApp: App {
                 .background(TransparentBackground())
                 .frame(width: 300, height: 300)
                 .background(WindowAccessor())
+                .onAppear {
+                    // Start audio analyzer when first window appears
+                    // The guard in AudioAnalyzer prevents multiple starts
+                    audioAnalyzer.start()
+                }
         }
         .windowResizability(.contentSize)
         .defaultSize(width: 300, height: 300)

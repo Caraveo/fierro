@@ -9,13 +9,67 @@ class AudioAnalyzer: ObservableObject {
     private var audioEngine: AVAudioEngine?
     private var inputNode: AVAudioInputNode?
     private var debugCounter = 0
+    private var isStarted = false // Prevent multiple starts
+    private var fakeAudioTimer: Timer? // Keep reference to fake audio timer
     
     func start() {
-        // Try to setup audio engine - system will prompt for permission on macOS
-        setupAudioEngine()
+        // Prevent multiple starts - only start once
+        guard !isStarted else {
+            print("⚠️ Audio analyzer already started, skipping duplicate start")
+            return
+        }
+        
+        isStarted = true
+        print("🎤 Starting audio analyzer...")
+        
+        // Request microphone permission explicitly before setting up audio engine
+        requestMicrophonePermission { [weak self] granted in
+            guard let self = self else { return }
+            if granted {
+                self.setupAudioEngine()
+            } else {
+                print("❌ Microphone permission denied")
+                print("   Please grant microphone access in System Settings > Privacy & Security > Microphone")
+                self.startFakeAudio()
+            }
+        }
+    }
+    
+    private func requestMicrophonePermission(completion: @escaping (Bool) -> Void) {
+        // Check current authorization status
+        let status = AVCaptureDevice.authorizationStatus(for: .audio)
+        
+        switch status {
+        case .authorized:
+            // Already authorized
+            completion(true)
+        case .notDetermined:
+            // Request permission - this will show system prompt
+            AVCaptureDevice.requestAccess(for: .audio) { granted in
+                DispatchQueue.main.async {
+                    completion(granted)
+                }
+            }
+        case .denied, .restricted:
+            // Permission denied or restricted
+            print("⚠️ Microphone permission denied or restricted")
+            print("   Current status: \(status == .denied ? "denied" : "restricted")")
+            print("   Please enable in System Settings > Privacy & Security > Microphone")
+            completion(false)
+        @unknown default:
+            completion(false)
+        }
     }
     
     private func setupAudioEngine() {
+        // Clean up any existing audio engine first (but keep isStarted = true)
+        inputNode?.removeTap(onBus: 0)
+        audioEngine?.stop()
+        audioEngine = nil
+        inputNode = nil
+        fakeAudioTimer?.invalidate()
+        fakeAudioTimer = nil
+        
         audioEngine = AVAudioEngine()
         guard let audioEngine = audioEngine else {
             print("❌ Failed to create audio engine")
@@ -41,6 +95,8 @@ class AudioAnalyzer: ObservableObject {
         }
         
         do {
+            // Prepare the audio engine before starting
+            audioEngine.prepare()
             try audioEngine.start()
             print("✅ Audio engine started successfully - listening for audio input")
         } catch {
@@ -55,10 +111,13 @@ class AudioAnalyzer: ObservableObject {
     }
     
     private func startFakeAudio() {
+        // Stop any existing fake audio timer
+        fakeAudioTimer?.invalidate()
+        
         print("⚠️ Using fake audio - real microphone not available")
         // Create a timer that simulates audio input for testing
         var time: Float = 0
-        Timer.scheduledTimer(withTimeInterval: 0.016, repeats: true) { [weak self] timer in
+        fakeAudioTimer = Timer.scheduledTimer(withTimeInterval: 0.016, repeats: true) { [weak self] timer in
             time += 0.016
             // Create a pulsing pattern that varies
             let baseLevel: Float = 0.3
@@ -159,10 +218,13 @@ class AudioAnalyzer: ObservableObject {
     }
     
     func stop() {
+        isStarted = false
         inputNode?.removeTap(onBus: 0)
         audioEngine?.stop()
         audioEngine = nil
         inputNode = nil
+        fakeAudioTimer?.invalidate()
+        fakeAudioTimer = nil
     }
     
     deinit {
