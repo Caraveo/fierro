@@ -215,9 +215,10 @@ class MetalRenderer: NSObject, MTKViewDelegate {
             // Audio-reactive transformation: Sphere -> Non-symmetrical -> Waveform
             float deformationIntensity = audioIntensity * 0.6 + touchReaction * 0.3;
             
-            // Phase 1: Non-symmetrical sphere (moderate audio)
-            float nonSymPhase = time * 0.4 + audioLevel * 0.7;
-            float nonSymDeform = min(deformationIntensity, 0.6); // Limit to 60% for phase 1
+            // Phase 1: Non-symmetrical sphere (moderate audio) - with pulsing
+            float pulseMod = sin(time * 1.8 + audioLevel * 2.5) * 0.3 + 0.7;
+            float nonSymPhase = time * 0.6 + audioLevel * 0.9;
+            float nonSymDeform = min(deformationIntensity, 0.6) * pulseMod; // Limit to 60% for phase 1, with pulsing
             
             // Create non-symmetrical deformation
             float asymX = sin(angle * 2.0 + nonSymPhase) * 0.15 * nonSymDeform;
@@ -307,14 +308,17 @@ class MetalRenderer: NSObject, MTKViewDelegate {
             }
             noise *= 0.08;
             
-            // More reactive base radius that responds to voice/audio with deformation
-            float baseRadius = 0.39 + audioLevel * 0.15 + morph1 * 0.03 + touchReaction * 0.15;
+            // More reactive base radius that responds to voice/audio with deformation - stronger pulsing
+            float pulsePhase = time * 2.0 + audioLevel * 3.0;
+            float pulse = sin(pulsePhase) * 0.12 + cos(pulsePhase * 1.3) * 0.08;
+            float baseRadius = 0.39 + audioLevel * 0.20 + morph1 * 0.03 + touchReaction * 0.15 + pulse * audioIntensity;
             // Adjust radius based on waveform deformation
             baseRadius += (waveformIntensity * 0.1 - nonSymDeform * 0.05);
             
-            // Single ring effect - one radial wave, more reactive to audio
-            float ringWave = sin(dist * 1.2 - time * 0.5) * 0.02 * (0.2 + audioLevel * 0.5 + touchReaction * 0.4);
-            float angularWave = sin(angle * 3.0 + time * 0.6) * 0.012 * (0.15 + audioLevel * 0.35 + touchReaction * 0.25);
+            // Single ring effect - one radial wave, more reactive to audio with stronger pulsing
+            float ringPulse = sin(time * 1.5 + audioLevel * 2.0) * 0.5 + 0.5;
+            float ringWave = sin(dist * 1.2 - time * 0.8) * 0.025 * (0.2 + audioLevel * 0.6 + touchReaction * 0.4) * (0.7 + ringPulse * 0.3);
+            float angularWave = sin(angle * 3.0 + time * 0.9) * 0.015 * (0.15 + audioLevel * 0.4 + touchReaction * 0.25) * (0.7 + ringPulse * 0.3);
             
             // Main blob with subtle morphing
             float blobDist = dist + noise * 0.1 + density * 1.2 + ringWave + angularWave;
@@ -374,8 +378,9 @@ class MetalRenderer: NSObject, MTKViewDelegate {
             // Single dominant color that transitions based on audio characteristics with more dynamism
             float3 baseColor = float3(0.0, 0.0, 0.0); // Darker base for more contrast
             
-            // Add time-based variation to prevent getting stuck
-            float timeVariation = sin(time * 0.5) * 0.15;
+            // Add time-based variation to prevent getting stuck - faster when reactive
+            float reactiveVariationSpeed = 1.0 + audioIntensity * 1.5;
+            float timeVariation = sin(time * (0.5 + reactiveVariationSpeed * 0.5)) * 0.15;
             float dynamicFreq = clamp(audioFrequency + timeVariation, 0.0, 1.0);
             float dynamicLevel = clamp(audioLevel + timeVariation * 0.5, 0.0, 1.0);
             
@@ -390,46 +395,75 @@ class MetalRenderer: NSObject, MTKViewDelegate {
             float3 dominantColor = float3(0.0);
             float colorIntensity = audioIntensity * 0.9 + touchReaction * 0.2;
             
-            // More dynamic color selection with smoother transitions
-            float freqWeight = dynamicFreq;
-            float levelWeight = dynamicLevel;
-            
-            // Create color zones with smooth blending between them
-            if (freqWeight > 0.65 && levelWeight > 0.45) {
-                // High freq + High volume = RED/PURPLE
-                float zoneMix = (freqWeight - 0.65) / 0.35;
-                dominantColor = mix(float3(1.0, 0.0, 0.3), float3(0.9, 0.0, 1.0), zoneMix);
-            } else if (freqWeight > 0.65) {
-                // High freq + Low volume = PINK/MAGENTA
-                float zoneMix = (freqWeight - 0.65) / 0.35;
-                dominantColor = mix(float3(1.0, 0.5, 0.9), float3(1.0, 0.2, 1.0), zoneMix);
-            } else if (freqWeight > 0.35 && levelWeight > 0.35) {
-                // Medium freq + High volume = BLUE/CYAN
-                float zoneMix = (freqWeight - 0.35) / 0.3;
-                dominantColor = mix(float3(0.2, 0.6, 1.0), float3(0.0, 1.0, 1.0), zoneMix);
-            } else if (freqWeight > 0.35) {
-                // Medium freq + Low volume = GREEN/TEAL
-                float zoneMix = (freqWeight - 0.35) / 0.3;
-                dominantColor = mix(float3(0.0, 1.0, 0.6), float3(0.0, 0.9, 0.9), zoneMix);
-            } else if (levelWeight > 0.35) {
-                // Low freq + High volume = ORANGE/YELLOW
-                float zoneMix = levelWeight;
-                dominantColor = mix(float3(1.0, 0.6, 0.0), float3(1.0, 0.9, 0.2), zoneMix);
+            // High audio level (0.9+) = RED priority
+            if (audioLevel >= 0.9) {
+                // Pure RED for high levels
+                float redIntensity = (audioLevel - 0.9) / 0.1; // 0-1 when level is 0.9-1.0
+                dominantColor = mix(float3(1.0, 0.1, 0.1), float3(1.0, 0.0, 0.0), redIntensity);
             } else {
-                // Low freq + Low volume = YELLOW/AMBER (but add variation)
-                float variation = sin(time * 0.8 + audioIntensity * 2.0) * 0.3;
-                dominantColor = mix(float3(1.0, 0.7, 0.1), float3(1.0, 0.5, 0.0), 0.5 + variation);
+                // More dynamic color selection with smoother transitions for lower levels
+                float freqWeight = dynamicFreq;
+                float levelWeight = dynamicLevel;
+                
+                // Create color zones with smooth blending between them
+                if (freqWeight > 0.65 && levelWeight > 0.45) {
+                    // High freq + High volume = RED/PURPLE
+                    float zoneMix = (freqWeight - 0.65) / 0.35;
+                    dominantColor = mix(float3(1.0, 0.0, 0.3), float3(0.9, 0.0, 1.0), zoneMix);
+                } else if (freqWeight > 0.65) {
+                    // High freq + Low volume = PINK/MAGENTA
+                    float zoneMix = (freqWeight - 0.65) / 0.35;
+                    dominantColor = mix(float3(1.0, 0.5, 0.9), float3(1.0, 0.2, 1.0), zoneMix);
+                } else if (freqWeight > 0.35 && levelWeight > 0.35) {
+                    // Medium freq + High volume = BLUE/CYAN
+                    float zoneMix = (freqWeight - 0.35) / 0.3;
+                    dominantColor = mix(float3(0.2, 0.6, 1.0), float3(0.0, 1.0, 1.0), zoneMix);
+                } else if (freqWeight > 0.35) {
+                    // Medium freq + Low volume = GREEN/TEAL
+                    float zoneMix = (freqWeight - 0.35) / 0.3;
+                    dominantColor = mix(float3(0.0, 1.0, 0.6), float3(0.0, 0.9, 0.9), zoneMix);
+                } else if (levelWeight > 0.35) {
+                    // Low freq + High volume = ORANGE/YELLOW
+                    float zoneMix = levelWeight;
+                    dominantColor = mix(float3(1.0, 0.6, 0.0), float3(1.0, 0.9, 0.2), zoneMix);
+                } else {
+                    // Low freq + Low volume = YELLOW/AMBER (but add variation)
+                    float variation = sin(time * 0.8 + audioIntensity * 2.0) * 0.3;
+                    dominantColor = mix(float3(1.0, 0.7, 0.1), float3(1.0, 0.5, 0.0), 0.5 + variation);
+                }
             }
             
-            // Add more dynamic color shifting with time and audio
-            float colorPhase = time * 0.4 + audioIntensity * 0.5 + audioFrequency * 0.3;
-            float colorBlend = sin(colorPhase) * 0.15 + 0.85; // More variation
+            // Cycle through color spectrum after choosing dominant color
+            float reactiveSpeed = 1.0 + audioIntensity * 2.0; // Speed up when reactive
+            float spectrumPhase = time * (0.6 + reactiveSpeed * 0.6) + audioIntensity * 1.2;
             
-            // Add subtle hue rotation to prevent stagnation
-            float hueShift = sin(time * 0.3) * 0.1;
-            dominantColor.r = clamp(dominantColor.r + hueShift, 0.0, 1.0);
-            dominantColor.g = clamp(dominantColor.g + hueShift * 0.5, 0.0, 1.0);
-            dominantColor.b = clamp(dominantColor.b - hueShift * 0.3, 0.0, 1.0);
+            // Create full spectrum cycle (HSV to RGB)
+            float hue = fract(spectrumPhase * 0.3); // Cycle through 0-1 (full spectrum)
+            float3 spectrumColor = float3(0.0);
+            
+            // HSV to RGB conversion for full spectrum
+            float h = hue * 6.0;
+            float c = 0.9 + audioIntensity * 0.1;
+            float x = c * (1.0 - abs(fmod(h, 2.0) - 1.0));
+            
+            if (h < 1.0) spectrumColor = float3(c, x, 0.0);
+            else if (h < 2.0) spectrumColor = float3(x, c, 0.0);
+            else if (h < 3.0) spectrumColor = float3(0.0, c, x);
+            else if (h < 4.0) spectrumColor = float3(0.0, x, c);
+            else if (h < 5.0) spectrumColor = float3(x, 0.0, c);
+            else spectrumColor = float3(c, 0.0, x);
+            
+            // Blend between dominant color and spectrum cycle based on audio intensity
+            float spectrumBlend = audioIntensity * 0.6; // More spectrum cycling when more reactive
+            float3 finalColor = mix(dominantColor, spectrumColor, spectrumBlend);
+            
+            // Add pulsing variation
+            float colorPhase = time * (0.8 + reactiveSpeed * 0.8) + audioIntensity * 1.5 + audioFrequency * 1.2;
+            float colorBlend = sin(colorPhase) * 0.25 + 0.75; // More variation and faster pulsing
+            finalColor *= colorBlend;
+            
+            // Use the final cycled color
+            dominantColor = finalColor;
             
             // Apply color based on audio intensity with more dynamism - darker contrast
             float3 gradientColor = mix(baseColor, dominantColor * colorBlend, colorIntensity);
@@ -454,10 +488,10 @@ class MetalRenderer: NSObject, MTKViewDelegate {
             // Increase overall contrast
             color = pow(color, float3(0.9)); // Slight darkening for more contrast
             
-            // One pixel border that fades in and out in certain areas
-            float borderFade = sin(time * 0.8 + angle * 2.0) * 0.5 + 0.5; // Fade based on angle and time
-            borderFade *= sin(time * 1.2 + dist * 3.0) * 0.5 + 0.5; // Additional fade based on distance
-            borderFade *= (0.3 + audioIntensity * 0.4 + touchReaction * 0.3); // Audio reactive
+            // One pixel border that fades in and out in certain areas - stronger pulsing
+            float borderPulse = sin(time * 2.0 + angle * 3.0) * 0.5 + 0.5; // Faster fade based on angle and time
+            borderPulse *= sin(time * 2.5 + dist * 4.0) * 0.5 + 0.5; // Faster additional fade based on distance
+            float borderFade = borderPulse * (0.4 + audioIntensity * 0.5 + touchReaction * 0.3); // Audio reactive with stronger pulsing
             
             // Detect edge (one pixel border)
             float edgeWidth = 0.01; // One pixel width

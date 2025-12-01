@@ -120,16 +120,16 @@ class AudioAnalyzer: ObservableObject {
         let normalizedFrequency = min(frequencyRatio * 1.5, 1.0) // Normalize frequency ratio
         
         DispatchQueue.main.async { [weak self] in
-            // Smooth transition - faster response for voice
+            // Smooth transition - very fast response for rapid color transitions
             if let currentLevel = self?.audioLevel {
-                self?.audioLevel = currentLevel * 0.4 + normalizedLevel * 0.6 // Much faster response
+                self?.audioLevel = currentLevel * 0.2 + normalizedLevel * 0.8 // Very fast response for quick color changes
             } else {
                 self?.audioLevel = normalizedLevel
             }
             
-            // Faster frequency response for more dynamism
+            // Much faster frequency response for rapid color transitions
             if let currentFreq = self?.audioFrequency {
-                self?.audioFrequency = currentFreq * 0.3 + normalizedFrequency * 0.7 // Much faster response
+                self?.audioFrequency = currentFreq * 0.15 + normalizedFrequency * 0.85 // Very fast response for quick transitions
             } else {
                 self?.audioFrequency = normalizedFrequency
             }
