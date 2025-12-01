@@ -3,7 +3,34 @@
 
   ],
   "copyCommands" : {
-
+    "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro_Fierro.bundle/start.wav" : {
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/caraveo/fierro/Sources/Fierro/start.wav"
+        }
+      ],
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro_Fierro.bundle/start.wav"
+        }
+      ]
+    },
+    "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro_Fierro.bundle/touch.wav" : {
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/caraveo/fierro/Sources/Fierro/touch.wav"
+        }
+      ],
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro_Fierro.bundle/touch.wav"
+        }
+      ]
+    }
   },
   "explicitTargetDependencyImportCheckingMode" : {
     "none" : {
@@ -40,7 +67,19 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/caraveo/fierro/Sources/Fierro/SoundManager.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/DerivedSources/resource_bundle_accessor.swift"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/swift-version--58304C5D6DBC2206.txt"
+        },
+        {
+          "kind" : "virtual",
+          "name" : "<Fierro-arm64-apple-macosx26.0-release.module-resources>"
         },
         {
           "kind" : "file",
@@ -54,7 +93,9 @@
         "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/AudioAnalyzer.swift.o",
         "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/ContentView.swift.o",
         "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/FierroApp.swift.o",
-        "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/MetalRenderer.swift.o"
+        "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/MetalRenderer.swift.o",
+        "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/SoundManager.swift.o",
+        "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/resource_bundle_accessor.swift.o"
       ],
       "otherArguments" : [
         "-target",
@@ -66,7 +107,7 @@
         "-O",
         "-j14",
         "-DSWIFT_PACKAGE",
-        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_AVAILABLE",
         "-module-cache-path",
         "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/ModuleCache",
         "-parseable-output",
@@ -128,6 +169,14 @@
         },
         {
           "kind" : "file",
+          "name" : "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/SoundManager.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/resource_bundle_accessor.swift.o"
+        },
+        {
+          "kind" : "file",
           "name" : "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Modules/Fierro.swiftmodule"
         }
       ],
@@ -136,7 +185,9 @@
         "/Users/caraveo/fierro/Sources/Fierro/AudioAnalyzer.swift",
         "/Users/caraveo/fierro/Sources/Fierro/ContentView.swift",
         "/Users/caraveo/fierro/Sources/Fierro/FierroApp.swift",
-        "/Users/caraveo/fierro/Sources/Fierro/MetalRenderer.swift"
+        "/Users/caraveo/fierro/Sources/Fierro/MetalRenderer.swift",
+        "/Users/caraveo/fierro/Sources/Fierro/SoundManager.swift",
+        "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/DerivedSources/resource_bundle_accessor.swift"
       ],
       "tempsPath" : "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build",
       "wholeModuleOptimization" : true
@@ -157,6 +208,8 @@
       "/Users/caraveo/fierro/Sources/Fierro/ContentView.swift",
       "/Users/caraveo/fierro/Sources/Fierro/FierroApp.swift",
       "/Users/caraveo/fierro/Sources/Fierro/MetalRenderer.swift",
+      "/Users/caraveo/fierro/Sources/Fierro/SoundManager.swift",
+      "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/DerivedSources/resource_bundle_accessor.swift",
       "-I",
       "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Modules",
       "-target",
@@ -168,7 +221,7 @@
       "-O",
       "-j14",
       "-DSWIFT_PACKAGE",
-      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_AVAILABLE",
       "-module-cache-path",
       "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/ModuleCache",
       "-parseable-output",
@@ -252,6 +305,14 @@
         {
           "kind" : "file",
           "name" : "/Users/caraveo/fierro/Sources/Fierro/MetalRenderer.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/caraveo/fierro/Sources/Fierro/SoundManager.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/DerivedSources/resource_bundle_accessor.swift"
         }
       ],
       "outputFilePath" : "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/sources"
@@ -278,6 +339,14 @@
         {
           "kind" : "file",
           "name" : "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/MetalRenderer.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/SoundManager.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/resource_bundle_accessor.swift.o"
         }
       ],
       "outputFilePath" : "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.product/Objects.LinkFileList"

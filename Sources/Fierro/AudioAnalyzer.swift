@@ -9,10 +9,8 @@ class AudioAnalyzer: ObservableObject {
     private var debugCounter = 0
     
     func start() {
-        // Start with fake audio for testing visual reaction
-        // Uncomment the line below to test with real microphone
-        startFakeAudio()
-        // setupAudioEngine()
+        // Try to setup real audio engine first
+        setupAudioEngine()
     }
     
     private func setupAudioEngine() {

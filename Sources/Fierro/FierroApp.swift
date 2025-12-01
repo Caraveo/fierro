@@ -5,6 +5,13 @@ import AppKit
 struct FierroApp: App {
     @StateObject private var audioAnalyzer = AudioAnalyzer()
     
+    init() {
+        // Play startup sound
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            SoundManager.shared.playStart()
+        }
+    }
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
@@ -55,7 +62,7 @@ struct WindowAccessor: NSViewRepresentable {
         // Position at bottom right
         if let screen = NSScreen.main {
             let screenRect = screen.visibleFrame
-            let windowSize = NSSize(width: 567, height: 567)
+            let windowSize = NSSize(width: 600, height: 600)
             let x = screenRect.maxX - windowSize.width - 20
             let y = screenRect.minY + 20
             window.setFrame(NSRect(origin: NSPoint(x: x, y: y), size: windowSize), display: true)

@@ -27,5 +27,17 @@
     "swiftmodule": "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/MetalRenderer~partial.swiftmodule",
     "swift-dependencies": "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/MetalRenderer.swiftdeps",
     "diagnostics": "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/MetalRenderer.dia"
+  },
+  "/Users/caraveo/fierro/Sources/Fierro/SoundManager.swift": {
+    "object": "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/SoundManager.swift.o",
+    "swiftmodule": "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/SoundManager~partial.swiftmodule",
+    "swift-dependencies": "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/SoundManager.swiftdeps",
+    "diagnostics": "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/SoundManager.dia"
+  },
+  "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/DerivedSources/resource_bundle_accessor.swift": {
+    "object": "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/resource_bundle_accessor.swift.o",
+    "swiftmodule": "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/resource_bundle_accessor~partial.swiftmodule",
+    "swift-dependencies": "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/resource_bundle_accessor.swiftdeps",
+    "diagnostics": "/Users/caraveo/fierro/.build/arm64-apple-macosx/release/Fierro.build/resource_bundle_accessor.dia"
   }
 }

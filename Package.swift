@@ -16,7 +16,11 @@ let package = Package(
         .executableTarget(
             name: "Fierro",
             dependencies: [],
-            exclude: ["FerrofluidShader.metal"]
+            exclude: ["FerrofluidShader.metal"],
+            resources: [
+                .process("start.wav"),
+                .process("touch.wav")
+            ]
         )
     ]
 )

@@ -10,14 +10,14 @@ struct FierroApp: App {
             ContentView()
                 .environmentObject(audioAnalyzer)
                 .background(TransparentBackground())
-                .frame(width: 300, height: 300)
+                .frame(width: 200, height: 200)
                 .onAppear {
                     setupWindow()
                 }
         }
         .windowStyle(.plain)
         .windowResizability(.contentSize)
-        .defaultSize(width: 300, height: 300)
+        .defaultSize(width: 200, height: 200)
     }
     
     private func setupWindow() {

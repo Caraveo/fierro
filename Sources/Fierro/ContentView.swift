@@ -17,8 +17,10 @@ struct ContentView: View {
                 .onChange(of: audioAnalyzer.audioLevel) { newLevel in
                     renderer?.updateAudioLevel(newLevel)
                 }
-            // Invisible draggable overlay
-            DraggableArea()
+            // Invisible draggable overlay with touch reaction
+            DraggableArea(onTap: {
+                renderer?.triggerTouchReaction()
+            })
         }
         .background(Color.clear)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -26,21 +28,52 @@ struct ContentView: View {
 }
 
 struct DraggableArea: NSViewRepresentable {
+    var onTap: (() -> Void)?
+    
     func makeNSView(context: Context) -> NSView {
         let view = DraggableNSView()
+        view.onTap = onTap
         return view
     }
     
-    func updateNSView(_ nsView: NSView, context: Context) {}
+    func updateNSView(_ nsView: NSView, context: Context) {
+        if let draggableView = nsView as? DraggableNSView {
+            draggableView.onTap = onTap
+        }
+    }
 }
 
 class DraggableNSView: NSView {
+    var onTap: (() -> Void)?
+    private var mouseDownLocation: NSPoint?
+    private let dragThreshold: CGFloat = 3.0 // Pixels to move before considering it a drag
+    
     override var mouseDownCanMoveWindow: Bool {
-        return true
+        return false // We'll handle dragging manually
     }
     
     override func mouseDown(with event: NSEvent) {
-        window?.performDrag(with: event)
+        mouseDownLocation = event.locationInWindow
+        // Play touch sound on click
+        SoundManager.shared.playTouch()
+        // Trigger visual reaction
+        onTap?()
+    }
+    
+    override func mouseDragged(with event: NSEvent) {
+        guard let startLocation = mouseDownLocation else { return }
+        let currentLocation = event.locationInWindow
+        let distance = sqrt(pow(currentLocation.x - startLocation.x, 2) + pow(currentLocation.y - startLocation.y, 2))
+        
+        // If moved far enough, it's a drag
+        if distance > dragThreshold {
+            window?.performDrag(with: event)
+            mouseDownLocation = nil
+        }
+    }
+    
+    override func mouseUp(with event: NSEvent) {
+        mouseDownLocation = nil
     }
 }
 
