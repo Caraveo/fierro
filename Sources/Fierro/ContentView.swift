@@ -22,10 +22,23 @@ struct ContentView: View {
                 }
                 .onChange(of: audioAnalyzer.audioIntensity) { newIntensity in
                     renderer?.updateAudioIntensity(newIntensity)
+                    // Notify emoji view of audio intensity changes
+                    NotificationCenter.default.post(name: NSNotification.Name("AudioIntensityChanged"), object: newIntensity)
                 }
+                .onChange(of: audioAnalyzer.audioLevel) { newLevel in
+                    // Notify emoji view of audio level changes
+                    NotificationCenter.default.post(name: NSNotification.Name("AudioLevelChanged"), object: newLevel)
+                }
+            
+            // Emoji overlay in center
+            EmojiView()
+                .allowsHitTesting(false)
+            
             // Invisible draggable overlay with touch reaction
             DraggableArea(onTap: {
                 renderer?.triggerTouchReaction()
+                // Show emoji on tap
+                NotificationCenter.default.post(name: NSNotification.Name("ShowEmoji"), object: nil)
             })
         }
         .background(Color.clear)

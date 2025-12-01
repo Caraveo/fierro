@@ -392,46 +392,83 @@ class MetalRenderer: NSObject, MTKViewDelegate {
             // Low frequency + High volume = ORANGE/YELLOW (bass, deep sounds)
             // Low frequency + Low volume = YELLOW/AMBER (warm, soft bass)
             
-            float3 dominantColor = float3(0.0);
             float colorIntensity = audioIntensity * 0.9 + touchReaction * 0.2;
             
-            // High audio level (0.9+) = RED priority
+            // Select 3-4 colors simultaneously for gradient effect
+            float3 color1 = float3(0.0);
+            float3 color2 = float3(0.0);
+            float3 color3 = float3(0.0);
+            float3 color4 = float3(0.0);
+            
+            float freqWeight = dynamicFreq;
+            float levelWeight = dynamicLevel;
+            
+            // High audio level (0.9+) = RED priority with gradient
             if (audioLevel >= 0.9) {
-                // Pure RED for high levels
-                float redIntensity = (audioLevel - 0.9) / 0.1; // 0-1 when level is 0.9-1.0
-                dominantColor = mix(float3(1.0, 0.1, 0.1), float3(1.0, 0.0, 0.0), redIntensity);
+                float redIntensity = (audioLevel - 0.9) / 0.1;
+                color1 = mix(float3(1.0, 0.1, 0.1), float3(1.0, 0.0, 0.0), redIntensity);
+                color2 = float3(1.0, 0.3, 0.0); // Orange-red
+                color3 = float3(0.9, 0.0, 0.5); // Deep pink
+                color4 = float3(1.0, 0.0, 0.2); // Bright red
             } else {
-                // More dynamic color selection with smoother transitions for lower levels
-                float freqWeight = dynamicFreq;
-                float levelWeight = dynamicLevel;
-                
-                // Create color zones with smooth blending between them
+                // Select multiple colors based on frequency and level
                 if (freqWeight > 0.65 && levelWeight > 0.45) {
-                    // High freq + High volume = RED/PURPLE
-                    float zoneMix = (freqWeight - 0.65) / 0.35;
-                    dominantColor = mix(float3(1.0, 0.0, 0.3), float3(0.9, 0.0, 1.0), zoneMix);
+                    // High freq + High volume = RED/PURPLE gradient
+                    color1 = float3(1.0, 0.0, 0.3); // Red
+                    color2 = float3(0.9, 0.0, 1.0); // Purple
+                    color3 = float3(1.0, 0.2, 0.6); // Pink
+                    color4 = float3(0.8, 0.0, 0.8); // Magenta
                 } else if (freqWeight > 0.65) {
-                    // High freq + Low volume = PINK/MAGENTA
-                    float zoneMix = (freqWeight - 0.65) / 0.35;
-                    dominantColor = mix(float3(1.0, 0.5, 0.9), float3(1.0, 0.2, 1.0), zoneMix);
+                    // High freq + Low volume = PINK/MAGENTA gradient
+                    color1 = float3(1.0, 0.5, 0.9); // Light pink
+                    color2 = float3(1.0, 0.2, 1.0); // Magenta
+                    color3 = float3(0.9, 0.3, 0.9); // Lavender
+                    color4 = float3(1.0, 0.4, 0.8); // Rose
                 } else if (freqWeight > 0.35 && levelWeight > 0.35) {
-                    // Medium freq + High volume = BLUE/CYAN
-                    float zoneMix = (freqWeight - 0.35) / 0.3;
-                    dominantColor = mix(float3(0.2, 0.6, 1.0), float3(0.0, 1.0, 1.0), zoneMix);
+                    // Medium freq + High volume = BLUE/CYAN gradient
+                    color1 = float3(0.2, 0.6, 1.0); // Blue
+                    color2 = float3(0.0, 1.0, 1.0); // Cyan
+                    color3 = float3(0.4, 0.8, 1.0); // Sky blue
+                    color4 = float3(0.0, 0.8, 1.0); // Bright cyan
                 } else if (freqWeight > 0.35) {
-                    // Medium freq + Low volume = GREEN/TEAL
-                    float zoneMix = (freqWeight - 0.35) / 0.3;
-                    dominantColor = mix(float3(0.0, 1.0, 0.6), float3(0.0, 0.9, 0.9), zoneMix);
+                    // Medium freq + Low volume = GREEN/TEAL gradient
+                    color1 = float3(0.0, 1.0, 0.6); // Green
+                    color2 = float3(0.0, 0.9, 0.9); // Teal
+                    color3 = float3(0.3, 1.0, 0.7); // Mint
+                    color4 = float3(0.0, 0.8, 0.8); // Aqua
                 } else if (levelWeight > 0.35) {
-                    // Low freq + High volume = ORANGE/YELLOW
-                    float zoneMix = levelWeight;
-                    dominantColor = mix(float3(1.0, 0.6, 0.0), float3(1.0, 0.9, 0.2), zoneMix);
+                    // Low freq + High volume = ORANGE/YELLOW gradient
+                    color1 = float3(1.0, 0.6, 0.0); // Orange
+                    color2 = float3(1.0, 0.9, 0.2); // Yellow
+                    color3 = float3(1.0, 0.7, 0.3); // Gold
+                    color4 = float3(1.0, 0.8, 0.1); // Amber
                 } else {
-                    // Low freq + Low volume = YELLOW/AMBER (but add variation)
+                    // Low freq + Low volume = YELLOW/AMBER gradient
                     float variation = sin(time * 0.8 + audioIntensity * 2.0) * 0.3;
-                    dominantColor = mix(float3(1.0, 0.7, 0.1), float3(1.0, 0.5, 0.0), 0.5 + variation);
+                    color1 = mix(float3(1.0, 0.7, 0.1), float3(1.0, 0.5, 0.0), 0.5 + variation);
+                    color2 = float3(1.0, 0.8, 0.2); // Light yellow
+                    color3 = float3(1.0, 0.6, 0.0); // Orange-yellow
+                    color4 = float3(1.0, 0.9, 0.3); // Pale yellow
                 }
             }
+            
+            // Create gradient using multiple colors based on position and audio
+            float gradientPhase = angle + time * 0.3 + audioIntensity * 0.5;
+            float gradientPos = (sin(gradientPhase) * 0.5 + 0.5); // 0-1 gradient position
+            
+            // Blend 4 colors in gradient
+            float3 color12 = mix(color1, color2, smoothstep(0.0, 0.33, gradientPos));
+            float3 color23 = mix(color2, color3, smoothstep(0.33, 0.66, gradientPos));
+            float3 color34 = mix(color3, color4, smoothstep(0.66, 1.0, gradientPos));
+            
+            float3 dominantColor = mix(color12, color23, smoothstep(0.0, 0.5, gradientPos));
+            dominantColor = mix(dominantColor, color34, smoothstep(0.5, 1.0, gradientPos));
+            
+            // Add radial gradient component
+            float radialGradient = smoothstep(0.3, 0.7, dist);
+            float3 centerColor = mix(color1, color2, 0.5);
+            float3 edgeColor = mix(color3, color4, 0.5);
+            dominantColor = mix(centerColor, edgeColor, radialGradient * 0.4) * 0.6 + dominantColor * 0.4;
             
             // Cycle through color spectrum after choosing dominant color
             float reactiveSpeed = 1.0 + audioIntensity * 2.0; // Speed up when reactive

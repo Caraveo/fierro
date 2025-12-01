@@ -11,25 +11,29 @@ class AudioAnalyzer: ObservableObject {
     private var debugCounter = 0
     
     func start() {
-        // Try to setup real audio engine first
+        // Try to setup audio engine - system will prompt for permission on macOS
         setupAudioEngine()
     }
     
     private func setupAudioEngine() {
         audioEngine = AVAudioEngine()
         guard let audioEngine = audioEngine else {
-            print("Failed to create audio engine")
+            print("❌ Failed to create audio engine")
+            startFakeAudio()
             return
         }
         
         inputNode = audioEngine.inputNode
         guard let inputNode = inputNode else {
-            print("Failed to get input node")
+            print("❌ Failed to get input node")
+            startFakeAudio()
             return
         }
         
         let recordingFormat = inputNode.outputFormat(forBus: 0)
-        print("Audio format: \(recordingFormat)")
+        print("✅ Audio format: \(recordingFormat)")
+        print("   Sample rate: \(recordingFormat.sampleRate)")
+        print("   Channel count: \(recordingFormat.channelCount)")
         
         // Install tap to get audio data
         inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat) { [weak self] buffer, _ in
@@ -38,15 +42,20 @@ class AudioAnalyzer: ObservableObject {
         
         do {
             try audioEngine.start()
-            print("Audio engine started successfully")
+            print("✅ Audio engine started successfully - listening for audio input")
         } catch {
-            print("Failed to start audio engine: \(error)")
+            print("❌ Failed to start audio engine: \(error)")
+            print("   Error details: \(error.localizedDescription)")
+            print("   This might be due to missing microphone permission.")
+            print("   Please grant microphone access in System Settings > Privacy & Security > Microphone")
+            print("   Falling back to fake audio for testing...")
             // Start fake audio for testing
             startFakeAudio()
         }
     }
     
     private func startFakeAudio() {
+        print("⚠️ Using fake audio - real microphone not available")
         // Create a timer that simulates audio input for testing
         var time: Float = 0
         Timer.scheduledTimer(withTimeInterval: 0.016, repeats: true) { [weak self] timer in
@@ -55,12 +64,16 @@ class AudioAnalyzer: ObservableObject {
             let baseLevel: Float = 0.3
             let variation = sin(time * 3.0) * 0.3 + cos(time * 5.0) * 0.2
             let fakeLevel = max(0.1, min(1.0, baseLevel + variation))
+            let fakeFreq = (sin(time * 2.0) * 0.5 + 0.5)
+            let fakeIntensity = (fakeLevel + fakeFreq) * 0.5
             
             DispatchQueue.main.async {
                 self?.audioLevel = fakeLevel
+                self?.audioFrequency = fakeFreq
+                self?.audioIntensity = fakeIntensity
                 // Debug: print every second
                 if Int(time) % 1 == 0 && time.truncatingRemainder(dividingBy: 1.0) < 0.1 {
-                    print("Audio level: \(fakeLevel)")
+                    print("📊 Fake Audio - Level: \(fakeLevel), Freq: \(fakeFreq), Intensity: \(fakeIntensity)")
                 }
             }
         }
@@ -140,7 +153,7 @@ class AudioAnalyzer: ObservableObject {
             // Debug: print occasionally
             self?.debugCounter += 1
             if let counter = self?.debugCounter, counter % 100 == 0 {
-                print("Audio - Level: \(normalizedLevel), Freq: \(normalizedFrequency), Intensity: \(self?.audioIntensity ?? 0)")
+                print("📊 Real Audio - Level: \(String(format: "%.3f", normalizedLevel)), Freq: \(String(format: "%.3f", normalizedFrequency)), Intensity: \(String(format: "%.3f", self?.audioIntensity ?? 0))")
             }
         }
     }
